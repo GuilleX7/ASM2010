@@ -7,7 +7,7 @@
 
 #define INSTRUCTION_MAX_LENGTH 4
 
-/** List of instructions' indexes */
+/** @brief List of instructions' indexes */
 enum ins_index {
 	INS_I_ST, INS_I_LD, INS_I_STS, INS_I_LDS, INS_I_CALL,
 	INS_I_RET, INS_I_BRZS, INS_I_BREQ, INS_I_BRCS, INS_I_BRLO,
@@ -18,13 +18,13 @@ enum ins_index {
 };
 typedef enum ins_index ins_index;
 
-/** List of instructions' formats */
+/** @brief List of instructions' formats */
 enum ins_format {
 	INS_FORMAT_A, INS_FORMAT_B, INS_FORMAT_C, INS_FORMAT_D, INS_FORMAT_E
 };
 typedef enum ins_format ins_format;
 
-/* Base for our instruction hashtable.
+/** @brief Base for our instruction hashtable.
 	We save both name and opcode, so we can access
 	them having the instruction index in the enum */
 struct ins_data {
@@ -35,23 +35,23 @@ struct ins_data {
 };
 typedef struct ins_data ins_data;
 
-/** Name and opcodes for each instruction */
+/** @brief Name and opcodes for each instruction */
 extern ins_data const INS_LIST[];
 
 /**
-	Initializes the hash table. Searching will be allowed from
+	@brief Initializes the hash table. Searching will be allowed from
 	this point onwards.
 */
 void ins_search_start(void);
 
 /**
-	Destroys the hash table. Searching will be forbbiden from
+	@brief Destroys the hash table. Searching will be forbbiden from
 	this point onwards.
 */
 void ins_search_stop(void);
 
 /**
-	Searchs for a instruction name an returns the corresponding index
+	@brief Searchs for a instruction name an returns the corresponding index
 	@param name Name of the instruction
 	@return Pointer to ins_data structure if found, null pointer otherwise
 */
