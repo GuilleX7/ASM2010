@@ -1,4 +1,4 @@
-#include "export.h"
+#include "file.h"
 
 const char *get_file_name(const char *file_path) {
     if (!file_path || !*file_path) return 0;
@@ -13,10 +13,10 @@ const char *get_file_name(const char *file_path) {
     return file_path + offset;
 }
 
-char *change_file_extension(const char *file_path, const char *new_extension) {
+char *change_path_extension(const char *file_path, const char *new_extension) {
     char *result = { 0 };
     if (!file_path || !*file_path) return 0;
-    char *dot_ptr = strrchr(file_path, '.');
+    char *dot_ptr = strrchr(file_path, (unsigned char) '.');
     if (dot_ptr) {
         result = malloc(dot_ptr - file_path + strlen(new_extension) + 1);
         if (result) {
@@ -34,20 +34,20 @@ char *change_file_extension(const char *file_path, const char *new_extension) {
     return result;
 }
 
-int export_pinfo_file(const char *file_path, parse_info *pinfo, int export_format) {
+int export_code_to_file(const char *file_path, uint16_t *code, size_t code_size, int export_format) {
     FILE *fp = fopen(file_path, (export_format == EXPORT_FORMAT_BIN) ? "wb" : "w");
     if (!fp) {
         return EXPORT_FILE_ERROR;
     }
 
     if (export_format == EXPORT_FORMAT_BIN) {
-        for (size_t i = 0; i < pinfo->sentence_index; i++) {
-            fwrite(&pinfo->bincode[i], sizeof pinfo->bincode[i], 1, fp);
+        for (size_t i = 0; i < code_size; i++) {
+            fwrite(&code[i], sizeof code[i], 1, fp);
         }
     } else {
         fprintf(fp, "v2.0 raw\n");
-        for (size_t i = 0; i < pinfo->sentence_index; i++) {
-            fprintf(fp, "%x\n", pinfo->bincode[i]);
+        for (size_t i = 0; i < code_size; i++) {
+            fprintf(fp, "%x\n", code[i]);
         }
     }
 

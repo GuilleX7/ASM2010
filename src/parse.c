@@ -542,23 +542,7 @@ static parse_line_status parse_instruction_fc(parse_info *pinfo, char const **li
 	parse_argument *inm_address = &sentence->arg_b;
 
 	jump_condition->type = ARGUMENT_TYPE_INM;
-	switch (sentence->instruction->index) {
-	case INS_I_BRCS:
-	case INS_I_BRLO:
-		jump_condition->value.inm = 1;
-		break;
-	case INS_I_BRVS:
-		jump_condition->value.inm = 2;
-		break;
-	case INS_I_BRLT:
-		jump_condition->value.inm = 3;
-		break;
-	case INS_I_BRZS:
-	case INS_I_BREQ:
-	default:
-		jump_condition->value.inm = 0;
-		break;
-	}
+	jump_condition->value.inm = ins_get_jmp_condition(sentence->instruction);
 
 	retrieve_value_status status = { 0 };
 	*inm_address = search_inm_equ(pinfo, lineptr, &status);
@@ -624,7 +608,7 @@ static parse_line_status search_instruction(parse_info *pinfo, char const **line
 	}
 
 	parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
-	sentence->instruction = ins_search(instruction_name);
+	sentence->instruction = ins_search_by_name(instruction_name);
 	if (!sentence->instruction) {
 		trace("[Error] unknown instruction '%s' at line %zu\n", instruction_name, pinfo->parsing_line_index);
 		free(instruction_name);

@@ -1,4 +1,13 @@
-#include "cli.h"
+#ifdef _MSC_BUILD
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* MSC_BUILD */
+
+#include <stdio.h>
+#include <stddef.h>
+#include <ctype.h>
+
+#include "../file.h"
+#include "../parse.h"
 
 static int read_upper_line(char *line, int max_length, FILE *fp) {
 	if (!fgets(line, max_length, fp)) {
@@ -88,10 +97,10 @@ int main(int argc, char **argv) {
 	printf("Successfully assembled!\n");
 
 	if (!output_path) {
-		output_path = change_file_extension(argv[1], (output_format == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
+		output_path = change_path_extension(argv[1], (output_format == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
 		must_free_path = true;
 	}
-	switch (export_pinfo_file(output_path, &pinfo, output_format)) {
+	switch (export_code_to_file(output_path, pinfo.bincode, pinfo.sentence_index, output_format)) {
 	case EXPORT_FILE_ERROR:
 		printf("Error: couldn't open output file '%s'\n", argv[1]);
 		break;

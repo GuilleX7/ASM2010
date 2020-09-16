@@ -1,4 +1,23 @@
-#include "gui.h"
+#ifdef _MSC_VER
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* _MSC_VER */
+
+#define PROGRAM_TITLE "ASM2010"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <locale.h>
+
+#include "../file.h"
+#include "../parse.h"
+
+#include "./iup/iup.h"
 
 /* Global variables */
 static char *actual_source_file = { 0 };
@@ -227,7 +246,7 @@ static void export_file(Ihandle *window) {
     parse_info pinfo = { 0 };
     parse_init(&pinfo);
     if (parse_source(window, &pinfo) == PARSE_OK) {
-        switch (export_pinfo_file(actual_export_file, &pinfo, actual_export_format)) {
+        switch (export_code_to_file(actual_export_file, pinfo.bincode, pinfo.sentence_index, actual_export_format)) {
         case EXPORT_FILE_ERROR:
             IupMessagef("Error", "Couldn't open file '%s'\n", actual_export_file);
             break;
@@ -391,7 +410,7 @@ static int exportas_item_cb(Ihandle *self) {
     if (actual_export_file && option == actual_export_format) {
         IupSetAttribute(dlg, "FILE", actual_export_file);
     } else if (actual_source_file) {
-        possible_file = change_file_extension(actual_source_file, (option == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
+        possible_file = change_path_extension(actual_source_file, (option == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
         if (possible_file) {
             IupSetStrAttribute(dlg, "FILE", possible_file);
             free(possible_file);

@@ -34,7 +34,7 @@ struct parse_argument {
 typedef struct parse_argument parse_argument;
 
 struct parse_sentence {
-	ins_data const *instruction;
+	instruction const *instruction;
 	parse_argument arg_a;
 	parse_argument arg_b;
 };
@@ -48,7 +48,7 @@ struct parse_info {
 	/** @brief Index of current parsing line */
 	size_t parsing_line_index;
 	/** @brief Index of current sentence */
-	uint8_t sentence_index;
+	size_t sentence_index;
 	/** @brief Hash table containig all equ replacements */
 	hash_table equs_ht;
 	/** @brief Trace buffer */

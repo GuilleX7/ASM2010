@@ -17,7 +17,7 @@ set(COMMON_SOURCE
 "src/parse.c"
 "src/instructions.c"
 "src/hash_table.c"
-"src/export.c"
+"src/file.c"
 )
 set(CLI_SOURCE
 "src/cli/cli.c"
@@ -30,13 +30,14 @@ add_executable(asm2010 ${COMMON_SOURCE} ${CLI_SOURCE})
 
 if (ASM2010_BUILD_GUI)
 	add_executable(asm2010-gui ${COMMON_SOURCE} ${GUI_SOURCE})
+
 	if (ASM2010_GUI_DEFAULTLIB)
 		find_library(IUP NAMES iup HINTS "lib" REQUIRED)
 	else ()
 		find_library(IUP NAMES iup REQUIRED)
 	endif (ASM2010_GUI_DEFAULTLIB)
-
 	list(APPEND REQUIRED_LIBS ${IUP})
+
 	if (WIN32)
 		if (MSVC)
 		  set_target_properties(asm2010-gui PROPERTIES LINK_FLAGS "${LINK_FLAGS} /NODEFAULTLIB:LIBCMT")

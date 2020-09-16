@@ -1,6 +1,8 @@
 #include "instructions.h"
 
-ins_data const INS_LIST[] = {
+#define BR_OPCODE 0x6
+
+instruction const INS_LIST[] = {
 	[INS_I_ST]   = { .index = INS_I_ST,   .name = "ST",   .opcode = 0x0,  .format = INS_FORMAT_A, },
 	[INS_I_LD]   = { .index = INS_I_LD,   .name = "LD",   .opcode = 0x1,  .format = INS_FORMAT_A, },
 	[INS_I_STS]  = { .index = INS_I_STS,  .name = "STS",  .opcode = 0x2,  .format = INS_FORMAT_B, },
@@ -42,11 +44,52 @@ void ins_search_stop(void) {
 	hash_table_free(&ht);
 }
 
-ins_data const *ins_search(char *name) {
+instruction const *ins_search_by_name(char *name) {
 	void *search = hash_table_get(&ht, name);
-	ins_data const *result = { 0 };
+	instruction const *result = { 0 };
 	if (search) {
 		result = &INS_LIST[*(int *) search];
 	}
 	return result;
+}
+
+instruction const *ins_get_from_sentence(uint16_t sentence) {
+	uint8_t opcode = (sentence & 0xF800u) >> 11;
+	instruction const *instruction = &INS_LIST[opcode];
+	/* Check for BR-like instruction */
+	uint8_t jmp_condition = 0;
+	if (opcode == BR_OPCODE) {
+		jmp_condition = (sentence & 0x700u) >> 8;
+		switch (jmp_condition) {
+		case 0:
+			instruction = &INS_LIST[INS_I_BRZS];
+		case 1:
+			instruction = &INS_LIST[INS_I_BRCS];
+		case 2:
+			instruction = &INS_LIST[INS_I_BRVS];
+		case 3:
+			instruction = &INS_LIST[INS_I_BRLT];
+		}
+	}
+	/* Check for a valid instruction */
+	if (!instruction->name) {
+		instruction = 0;
+	}
+	return instruction;
+}
+
+uint8_t ins_get_jmp_condition(instruction const *const instruction) {
+	switch (instruction->index) {
+	case INS_I_BRCS:
+	case INS_I_BRLO:
+		return 1;
+	case INS_I_BRVS:
+		return 2;
+	case INS_I_BRLT:
+		return 3;
+	case INS_I_BRZS:
+	case INS_I_BREQ:
+	default:
+		return 0;
+	}
 }
