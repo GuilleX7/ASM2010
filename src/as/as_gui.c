@@ -14,10 +14,11 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <stdbool.h>
 #include <locale.h>
 
-#include "../file.h"
-#include "../parse.h"
+#include <iup.h>
 
-#include "./iup/iup.h"
+#include "../file.h"
+
+#include "as_parse.h"
 
 /* Global variables */
 static char *actual_source_file = { 0 };

@@ -1,5 +1,5 @@
-#ifndef PARSE_H
-#define PARSE_H
+#ifndef AS_PARSE_H
+#define AS_PARSE_H
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -10,8 +10,8 @@
 #include <stdint.h> /* int types */
 #include <string.h> /* strlen */
 #include <ctype.h> /* isalnum */
-#include "instructions.h" /* ins_list */
-#include "hash_table.h" /* hash_table */
+#include "../instructions.h" /* ins_list */
+#include "../hash_table.h" /* hash_table */
 
 #define MAX_SOURCE_LINES 65535
 #define MAX_LINE_LENGTH 256
@@ -103,4 +103,4 @@ parse_status parse_assemble(parse_info *pinfo);
 */
 void parse_free(parse_info *pinfo);
 
-#endif /* PARSE_H */
+#endif /* AS_PARSE_H */

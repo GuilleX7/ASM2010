@@ -36,7 +36,9 @@ static hash_table ht;
 void ins_search_start(void) {
 	hash_table_init(&ht);
 	for (size_t i = 0; i < INS_LEN; i++) {
-		hash_table_put(&ht, INS_LIST[i].name, &i);
+		if (INS_LIST[i].name) {
+			hash_table_put(&ht, INS_LIST[i].name, &i);
+		}
 	}
 }
 

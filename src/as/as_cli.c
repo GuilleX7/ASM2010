@@ -7,7 +7,8 @@
 #include <ctype.h>
 
 #include "../file.h"
-#include "../parse.h"
+
+#include "as_parse.h"
 
 static int read_upper_line(char *line, int max_length, FILE *fp) {
 	if (!fgets(line, max_length, fp)) {
@@ -42,6 +43,11 @@ int main(int argc, char **argv) {
 	parse_status status = { 0 };
 
 	if (argc < 2) {
+		show_help();
+		return EXIT_SUCCESS;
+	}
+
+	if (!strcmp(argv[1], "-help")) {
 		show_help();
 		return EXIT_SUCCESS;
 	}

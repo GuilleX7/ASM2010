@@ -215,8 +215,11 @@ static size_t hash_table_hash(size_t size_index, char *key) {
 	size_t hash = 0;
 	char ch;
 
-	while ((ch = *key++))
-		hash = 31 * hash + ch;
+	if (key) {
+		while ((ch = *key++)) {
+			hash = 31 * hash + ch;
+		}
+	}
 
 	return hash % size;
 }
