@@ -22,6 +22,7 @@ struct hash_table {
 	/** @brief Array of pointers to entries */
 	struct hash_table_entry **entries;
 };
+typedef struct hash_table hash_table;
 
 /** @brief Struct representing an entry in the hash table */
 struct hash_table_entry {
