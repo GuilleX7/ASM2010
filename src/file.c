@@ -1,5 +1,7 @@
 #include "file.h"
 
+static char const cs2010_bin_signature[] = { 'C', 'S', '2', '0', '1', '0' };
+
 const char *get_file_name(const char *file_path) {
     if (!file_path || !*file_path) return 0;
     size_t offset = strlen(file_path) - 1;
@@ -41,6 +43,7 @@ int export_code_to_file(const char *file_path, uint16_t *code, size_t code_size,
     }
 
     if (export_format == EXPORT_FORMAT_BIN) {
+        fwrite(cs2010_bin_signature, 1, sizeof(cs2010_bin_signature) / sizeof(cs2010_bin_signature[0]), fp);
         for (size_t i = 0; i < code_size; i++) {
             fwrite(&code[i], sizeof code[i], 1, fp);
         }
