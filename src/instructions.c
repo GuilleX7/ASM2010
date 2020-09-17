@@ -1,7 +1,5 @@
 #include "instructions.h"
 
-#define BR_OPCODE 0x6
-
 instruction const INS_LIST[] = {
 	[INS_I_ST]   = { .index = INS_I_ST,   .name = "ST",   .opcode = 0x0,  .format = INS_FORMAT_A, },
 	[INS_I_LD]   = { .index = INS_I_LD,   .name = "LD",   .opcode = 0x1,  .format = INS_FORMAT_A, },
@@ -60,7 +58,8 @@ instruction const *ins_get_from_sentence(uint16_t sentence) {
 	instruction const *instruction = &INS_LIST[opcode];
 	/* Check for BR-like instruction */
 	uint8_t jmp_condition = 0;
-	if (opcode == BR_OPCODE) {
+	/* Using BRZS opcode, mean BRxx opcode */
+	if (opcode == INS_LIST[INS_I_BRZS].opcode) {
 		jmp_condition = (sentence & 0x700u) >> 8;
 		switch (jmp_condition) {
 		case 0:
