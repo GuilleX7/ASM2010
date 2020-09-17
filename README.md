@@ -5,7 +5,7 @@ Only AS2010 is available now.
 ## Features
 - Full support for CS2010 assembly syntax and machine code
 - Both command line interface and GUI (built-in simple text editor) for AS2010
-~~- Easy debug with microoperation or instruction stepping~~ *(M2010 not ready yet)*
+- ~~Easy debug with microoperation or instruction stepping~~ *(M2010 not ready yet)*
 ## Build
 **CMake** is used for building this project. Three targets are available: **as2010**, **as2010-gui** and **m2010.**
 - **as2010** is a CLI assembler that uses only standard library, so can be built in almost any conforming C99 platform.
