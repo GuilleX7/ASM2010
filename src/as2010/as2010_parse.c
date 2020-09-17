@@ -1,4 +1,4 @@
-#include "as_parse.h"
+#include "as2010_parse.h"
 
 #define EQU_KEYWORD ".EQU "
 #define EQU_KEYWORD_LENGTH strlen(EQU_KEYWORD)

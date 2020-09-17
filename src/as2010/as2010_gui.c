@@ -5,7 +5,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
-#define PROGRAM_TITLE "ASM2010"
+#define PROGRAM_TITLE "AS2010"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "../file.h"
 
-#include "as_parse.h"
+#include "as2010_parse.h"
 
 /* Global variables */
 static char *actual_source_file = { 0 };

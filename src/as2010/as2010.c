@@ -8,7 +8,7 @@
 
 #include "../file.h"
 
-#include "as_parse.h"
+#include "as2010_parse.h"
 
 static int read_upper_line(char *line, int max_length, FILE *fp) {
 	if (!fgets(line, max_length, fp)) {

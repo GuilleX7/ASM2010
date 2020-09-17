@@ -1,5 +1,5 @@
-#ifndef AS_PARSE_H
-#define AS_PARSE_H
+#ifndef AS2010_PARSE_H
+#define AS2010_PARSE_H
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -103,4 +103,4 @@ parse_status parse_assemble(parse_info *pinfo);
 */
 void parse_free(parse_info *pinfo);
 
-#endif /* AS_PARSE_H */
+#endif /* AS2010_PARSE_H */
