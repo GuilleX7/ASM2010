@@ -14,7 +14,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <stdbool.h>
 #include <locale.h>
 
-#include <iup.h>
+#include <iup/iup.h>
 
 #include "../file.h"
 
