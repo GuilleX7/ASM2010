@@ -84,7 +84,7 @@ if (AS2010_GUI_BUILD)
 			add_custom_command(
 			   TARGET as2010-gui
 			   POST_BUILD
-			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\iup.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\as2010-gui.exe\"\;\#1
+			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\as2010-gui.exe\"\;\#1
 			)
 		endif (MSVC)
 	endif (WIN32)
