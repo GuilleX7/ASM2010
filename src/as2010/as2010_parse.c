@@ -493,6 +493,10 @@ static parse_argument search_register(char const **lineptr, bool allow_indirect_
 	parse_argument argument = { .type = ARGUMENT_TYPE_INVALID };
 	bool indirect = false;
 
+	if (skip_spaces(lineptr) == PARSE_LINE_END) {
+		return argument;
+	}
+
 	if (**lineptr == INDIRECT_REG_OP_MARK) {
 		if (allow_indirect_syntax) {
 			indirect = true;
@@ -506,20 +510,15 @@ static parse_argument search_register(char const **lineptr, bool allow_indirect_
 		return argument;
 	}
 
-	if (**lineptr == 'R' && *(*lineptr + 1) >= '0' && *(*lineptr + 1) <= '8') {
+	if (**lineptr == REG_MARK && *(*lineptr + 1) >= '0' && *(*lineptr + 1) <= '8') {
 		argument.type = ARGUMENT_TYPE_INM;
 		argument.value.inm = *(*lineptr + 1) - '0';
 		*lineptr += 2;
 	}
 
-	if (skip_spaces(lineptr) == PARSE_LINE_END) {
+	if ((indirect && **lineptr != INDIRECT_REG_END_MARK) || (!indirect && **lineptr == INDIRECT_REG_END_MARK)) {
 		argument.type = ARGUMENT_TYPE_INVALID;
-		return argument;
-	}
-
-	if ((indirect && **lineptr != ')') || (!indirect && **lineptr == ')')) {
-		argument.type = ARGUMENT_TYPE_INVALID;
-	} else if (**lineptr == ')') {
+	} else if (**lineptr == INDIRECT_REG_END_MARK) {
 		(*lineptr)++;
 	}
 
