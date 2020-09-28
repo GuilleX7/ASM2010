@@ -21,21 +21,36 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include "as2010_parse.h"
 
 /* Global variables */
-static char *actual_source_file = { 0 };
-static char *actual_export_file = { 0 };
+
+static char *actual_source_filepath = { 0 };
+static char *actual_export_filepath = { 0 };
 static int actual_export_format = 0;
 static bool dirty = false;
 
-/* Callbacks */
-static int on_exit_cb(Ihandle *self);
-static int new_item_cb(Ihandle *self);
-static int open_item_cb(Ihandle *self);
-static int saveas_item_cb(Ihandle *self);
-static int save_item_cb(Ihandle *self);
-static int assemble_item_cb(Ihandle *self);
-static int exportas_item_cb(Ihandle *self);
-static int export_item_cb(Ihandle *self);
-static int source_multitext_valuechanged_cb(Ihandle *self);
+/* Source file functions */
+
+/**
+ * @brief Open and reads a file, marking it as source
+ * @param window Pointer to window handler
+ * @param filepath Path to the file
+ * @return true if file was readed successfully, false otherwise
+*/
+static bool open_file(Ihandle *window, char const *filepath) {
+    extern void clear_actual(Ihandle *);
+    extern char *read_file(char const *);
+    extern void mark_actual_source(Ihandle *, char const *);
+    Ihandle *source_multitext = IupGetDialogChild(window, "SOURCE_MULTITEXT");
+    char *str = read_file(filepath);
+    if (str) {
+        IupSetStrAttribute(source_multitext, "VALUE", str);
+        clear_actual(window);
+        mark_actual_source(window, filepath);
+        dirty = false;
+        free(str);
+        return true;
+    }
+    return false;
+}
 
 /**
  * @brief Reads the entire content of a file
@@ -43,13 +58,13 @@ static int source_multitext_valuechanged_cb(Ihandle *self);
  * @return Dynamically allocated array of char containing the
  *          entire text
 */
-static char *read_file(const char *filename) {
+static char *read_file(char const *filepath) {
     size_t size;
     char *str;
     int i;
-    FILE *file = fopen(filename, "rb");
+    FILE *file = fopen(filepath, "rb");
     if (!file) {
-        IupMessagef("Error", "Couldn't open file: %s", filename);
+        IupMessagef("Error", "Couldn't open file: %s", filepath);
         return 0;
     }
 
@@ -59,14 +74,14 @@ static char *read_file(const char *filename) {
 
     str = malloc(size + 1);
     if (!str) {
-        IupMessagef("Error", "Failed when reading from file: %s", filename);
+        IupMessagef("Error", "Failed when reading from file: %s", filepath);
         fclose(file);
         return 0;
     }
 
     if (fread(str, 1, size, file) != size) {
         if (ferror(file)) {
-            IupMessagef("Error", "Failed when reading from file: %s", filename);
+            IupMessagef("Error", "Failed when reading from file: %s", filepath);
         }
     }
     str[size] = 0;
@@ -90,18 +105,18 @@ static char *read_file(const char *filename) {
  * @return true if file was successfully saves,
  *          else otherwise
 */
-static bool save_file(char *filename, char *str) {
-    FILE *file = fopen(filename, "wb");
+static bool save_file(char const *filepath, char const *str) {
+    FILE *file = fopen(filepath, "wb");
     bool status = true;
-    if (!file) {
-        IupMessagef("Error", "Couldn't open file: %s", filename);
+    if (!filepath) {
+        IupMessagef("Error", "Couldn't open file: %s", filepath);
         return false;
     }
 
     fwrite(str, 1, strlen(str), file);
 
     if (ferror(file)) {
-        IupMessagef("Error", "Failed when saving file: %s", filename);
+        IupMessagef("Error", "Failed when saving file: %s", filepath);
         status = false;
     }
 
@@ -117,13 +132,13 @@ static bool save_file(char *filename, char *str) {
  *              whose title will be changed
  * @param file Path to the file
 */
-static void mark_actual_source(Ihandle *window, char *file) {
-    if (actual_source_file) free(actual_source_file);
-    actual_source_file = malloc(strlen(file) + 1);
-    if (!actual_source_file) return;
-    strcpy(actual_source_file, file);
+static void mark_actual_source(Ihandle *window, char const *filepath) {
+    if (actual_source_filepath) free(actual_source_filepath);
+    actual_source_filepath = malloc(strlen(filepath) + 1);
+    if (!actual_source_filepath) return;
+    strcpy(actual_source_filepath, filepath);
 
-    IupSetStrf(window, "TITLE", "%s - %s", get_file_name(file), PROGRAM_TITLE);
+    IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PROGRAM_TITLE);
 }
 
 /**
@@ -134,11 +149,11 @@ static void mark_actual_source(Ihandle *window, char *file) {
  * @param file Path to the file
  * @param export_format Exporting format for the file
 */
-static void mark_actual_export(char *file, int export_format) {
-    if (actual_export_file) free(actual_export_file);
-    actual_export_file = malloc(strlen(file) + 1);
-    if (!actual_export_file) return;
-    strcpy(actual_export_file, file);
+static void mark_actual_export(char const *filepath, int export_format) {
+    if (actual_export_filepath) free(actual_export_filepath);
+    actual_export_filepath = malloc(strlen(filepath) + 1);
+    if (!actual_export_filepath) return;
+    strcpy(actual_export_filepath, filepath);
 
     actual_export_format = export_format;
 }
@@ -150,14 +165,38 @@ static void mark_actual_export(char *file, int export_format) {
  * @param window 
 */
 static void clear_actual(Ihandle *window) {
-    if (actual_source_file) free(actual_source_file);
-    actual_source_file = 0;
-    if (actual_export_file) free(actual_export_file);
-    actual_export_file = 0;
+    if (actual_source_filepath) free(actual_source_filepath);
+    actual_source_filepath = 0;
+    if (actual_export_filepath) free(actual_export_filepath);
+    actual_export_filepath = 0;
     actual_export_format = 0;
 
     IupSetAttribute(window, "TITLE", PROGRAM_TITLE);
 }
+
+/**
+ * @brief Checks whether source has been saved before
+ *        exiting
+ * @param window Pointer to window handler
+ * @return true if user chooses to exit, false if user chooses to stay
+*/
+static bool save_check(Ihandle *window) {
+    extern int save_item_cb(Ihandle * self);
+    if (dirty) {
+        switch (IupAlarm("Warning", "Source changes haven't been saved. Save it now?", "Save changes", "Ignore changes", "Cancel")) {
+        case 1:  /* Save the changes and continue */
+            save_item_cb(window);
+            break;
+        case 2:  /* Ignore the changes and continue */
+            break;
+        case 3:  /* Cancel */
+            return false;
+        }
+    }
+    return true;
+}
+
+/* Trace functions */
 
 /**
  * @brief Traces the given string at the given multitext
@@ -165,7 +204,7 @@ static void clear_actual(Ihandle *window) {
  * @param multitext Pointer to the multitext handler 
  * @param str String to be traced
 */
-static void trace(Ihandle *multitext, char *str) {
+static void trace(Ihandle *multitext, char const *str) {
     char *new_str = malloc(IupGetInt(multitext, "COUNT") + strlen(str) + 1);
     if (!new_str) {
         IupMessage("Error", "Memory exhaustion detected: unable to operate");
@@ -175,6 +214,8 @@ static void trace(Ihandle *multitext, char *str) {
     IupSetStrAttribute(multitext, "VALUE", new_str);
     free(new_str);
 }
+
+/* Assembly functions */
 
 /**
  * @brief Reads a line of a given string in uppercase
@@ -247,12 +288,12 @@ static void export_file(Ihandle *window) {
     parse_info pinfo = { 0 };
     parse_init(&pinfo);
     if (parse_source(window, &pinfo) == PARSE_OK) {
-        switch (export_code_to_file(actual_export_file, pinfo.bincode, pinfo.sentence_index, actual_export_format)) {
+        switch (export_code_to_file(actual_export_filepath, pinfo.bincode, pinfo.sentence_index, actual_export_format)) {
         case EXPORT_FILE_ERROR:
-            IupMessagef("Error", "Couldn't open file '%s'\n", actual_export_file);
+            IupMessagef("Error", "Couldn't open file '%s'\n", actual_export_filepath);
             break;
         case EXPORT_ERROR:
-            IupMessagef("Error", "Couldn't write file '%s'\n", actual_export_file);
+            IupMessagef("Error", "Couldn't write file '%s'\n", actual_export_filepath);
             break;
         default:
             trace(status_multitext, "Successfully exported file!\n");
@@ -263,26 +304,7 @@ static void export_file(Ihandle *window) {
     return;
 }
 
-/**
- * @brief Checks whether source has been saved before
- *        exiting
- * @param window Pointer to window handler
- * @return
-*/
-static bool save_check(Ihandle *window) {
-    if (dirty) {
-        switch (IupAlarm("Warning", "Source changes haven't been saved. Save it now?", "Save changes", "Ignore changes", "Cancel")) {
-        case 1:  /* Save the changes and continue */
-            save_item_cb(window);
-            break;
-        case 2:  /* Ignore the changes and continue */
-            break;
-        case 3:  /* Cancel */
-            return false;
-        }
-    }
-    return true;
-}
+/* Callbacks */
 
 static int on_exit_cb(Ihandle *self) {
     if (!save_check(self)) {
@@ -295,6 +317,11 @@ static int on_exit_cb(Ihandle *self) {
 static int new_item_cb(Ihandle *self) {
     Ihandle *main_window = IupGetDialog(self);
     Ihandle *source_multitext = IupGetDialogChild(main_window, "SOURCE_MULTITEXT");
+
+    if (!save_check(main_window)) {
+        return IUP_IGNORE;
+    }
+
     IupSetAttribute(source_multitext, "VALUE", "");
     clear_actual(main_window);
     dirty = false;
@@ -303,11 +330,15 @@ static int new_item_cb(Ihandle *self) {
 
 static int open_item_cb(Ihandle *self) {
     Ihandle *main_window = IupGetDialog(self);
-    Ihandle *source_multitext = IupGetDialogChild(main_window, "SOURCE_MULTITEXT");
-    Ihandle *dlg = IupFileDlg();
-    char *str = { 0 };
+    Ihandle *dlg;
     char *file = { 0 };
 
+    if (!save_check(main_window)) {
+        return IUP_IGNORE;
+    }
+
+    dlg = IupFileDlg();
+        
     IupSetAttribute(dlg, "DIALOGTYPE", "OPEN");
     IupSetAttribute(dlg, "TITLE", "Open a file");
     IupSetAttribute(dlg, "EXTFILTER", "Assembly files|*.asm|All files|*.*|");
@@ -317,15 +348,7 @@ static int open_item_cb(Ihandle *self) {
 
     if (IupGetInt(dlg, "STATUS") != -1) {
         file = IupGetAttribute(dlg, "VALUE");
-
-        str = read_file(file);
-        if (str) {
-            IupSetAttribute(source_multitext, "VALUE", str);
-            clear_actual(main_window);
-            mark_actual_source(main_window, file);
-            dirty = false;
-            free(str);
-        }
+        open_file(main_window, file);
     }
 
     IupDestroy(dlg);
@@ -341,8 +364,8 @@ static int saveas_item_cb(Ihandle *self) {
     IupSetAttribute(dlg, "EXTFILTER", "Assembly files|*.asm|All files|*.*|");
     IupSetAttribute(dlg, "EXTDEFAULT", "asm");
     IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
-    if (actual_source_file)
-        IupSetStrAttribute(dlg, "FILE", actual_source_file);
+    if (actual_source_filepath)
+        IupSetStrAttribute(dlg, "FILE", actual_source_filepath);
 
     IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
 
@@ -361,9 +384,9 @@ static int saveas_item_cb(Ihandle *self) {
 
 static int save_item_cb(Ihandle *self) {
     Ihandle *main_window = IupGetDialog(self);
-    if (actual_source_file) {
-        save_file(actual_source_file, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"));
-        IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_file), PROGRAM_TITLE);
+    if (actual_source_filepath) {
+        save_file(actual_source_filepath, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"));
+        IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PROGRAM_TITLE);
         dirty = false;
     } else {
         saveas_item_cb(self);
@@ -408,10 +431,10 @@ static int exportas_item_cb(Ihandle *self) {
         IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*.hex|");
         IupSetAttribute(dlg, "EXTDEFAULT", "hex");
     }
-    if (actual_export_file && option == actual_export_format) {
-        IupSetAttribute(dlg, "FILE", actual_export_file);
-    } else if (actual_source_file) {
-        possible_file = change_path_extension(actual_source_file, (option == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
+    if (actual_export_filepath && option == actual_export_format) {
+        IupSetAttribute(dlg, "FILE", actual_export_filepath);
+    } else if (actual_source_filepath) {
+        possible_file = change_path_extension(actual_source_filepath, (option == EXPORT_FORMAT_BIN) ? ".bin" : ".hex");
         if (possible_file) {
             IupSetStrAttribute(dlg, "FILE", possible_file);
             free(possible_file);
@@ -435,7 +458,7 @@ static int exportas_item_cb(Ihandle *self) {
 
 static int export_item_cb(Ihandle *self) {
     Ihandle *window = IupGetDialog(self);
-    if (actual_export_file) {
+    if (actual_export_filepath) {
         export_file(IupGetDialog(window));
     } else {
         exportas_item_cb(self);
@@ -444,12 +467,26 @@ static int export_item_cb(Ihandle *self) {
 }
 
 static int source_multitext_valuechanged_cb(Ihandle *self) {
-    if (!dirty && actual_source_file) {
-        IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_file), PROGRAM_TITLE);
+    if (!dirty && actual_source_filepath) {
+        IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_filepath), PROGRAM_TITLE);
     }
     dirty = true;
     return IUP_DEFAULT;
 }
+
+static int dropfiles_cb(Ihandle *self, const char *filepath, int num, int x, int y) {
+    Ihandle *window = IupGetDialog(self);
+
+    if (num != 0) {
+        return IUP_DEFAULT;
+    }
+    
+    if (save_check(window)) {
+        open_file(window, filepath);
+    }
+}
+
+/* Main function */
 
 int main(int argc, char **argv) {
     /* Main window */
@@ -579,7 +616,6 @@ int main(int argc, char **argv) {
     main_window = IupDialog(main_vbox);
     IupSetAttribute(main_window, "NAME", "MAIN_WINDOW");
     IupSetAttributeHandle(main_window, "MENU", menu);
-    new_item_cb(main_window);
     IupSetAttribute(main_window, "SIZE", "QUARTERxHALF");
 
     IupSetCallback(main_window, "K_cN", (Icallback) new_item_cb);
@@ -587,8 +623,11 @@ int main(int argc, char **argv) {
     IupSetCallback(main_window, "K_cS", (Icallback) save_item_cb);
     IupSetCallback(main_window, "K_cQ", (Icallback) on_exit_cb);
     IupSetCallback(main_window, "K_cI", (Icallback) assemble_item_cb);
+    IupSetCallback(main_window, "DROPFILES_CB", (Icallback) dropfiles_cb);
 
     IupSetCallback(main_window, "CLOSE_CB", (Icallback) on_exit_cb);
+
+    new_item_cb(main_window);
 
     IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
     IupSetAttribute(main_window, "SIZE", NULL);
