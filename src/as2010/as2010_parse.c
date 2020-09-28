@@ -4,8 +4,13 @@
 #define EQU_KEYWORD_LENGTH strlen(EQU_KEYWORD)
 #define EQU_LINE_MARK ':'
 #define EQU_DEFINE_MARK '='
+#define OPCODE_KEYWORD ".OPCODE "
+#define OPCODE_KEYWORD_LENGTH strlen(OPCODE_KEYWORD)
 #define ARG_SEP_MARK ','
 #define COMMENT_MARK ';'
+#define INDIRECT_REG_OP_MARK '('
+#define INDIRECT_REG_END_MARK ')'
+#define REG_MARK 'R'
 
 #define trace(...) \
 do {\
@@ -90,7 +95,7 @@ static char *retrieve_alnum_identifier(parse_info *pinfo, char const **lineptr, 
 
 	identifier = malloc((max_len + 1) * sizeof(char));
 	if (!identifier) {
-		trace("[Memory] running out of memory, errors may appear after this");
+		trace("[Error] memory exhaustion detected, couldn't fetch identifier");
 		return 0;
 	}
 
@@ -102,7 +107,7 @@ static char *retrieve_alnum_identifier(parse_info *pinfo, char const **lineptr, 
 	}
 	*(identifier + i) = 0;
 
-	if (i == 0 || (i == max_len && isalnum((unsigned char) **lineptr))) {
+	if (i == 0 || (i == max_len && (isalnum((unsigned char) **lineptr) || **lineptr == '_'))) {
 		/* Either we didn't capture characters at all nor we didn't capture
 		the entire identifier, throw an error */
 		free(identifier);
@@ -121,7 +126,7 @@ static char *retrieve_alnum_identifier(parse_info *pinfo, char const **lineptr, 
 				couldn't find any value
 	@return Value if status is OK, garbage value otherwise
 */
-static uint8_t retrieve_value_hexadecimal(char const **lineptr, retrieve_value_status *status) {
+static uint8_t retrieve_value_hexadecimal(char const **lineptr, retrieve_value_status *status, uint8_t max_value) {
 	uint8_t value = { 0 };
 	uint8_t ch_value = 0;
 	size_t valid_characters = 0;
@@ -129,7 +134,7 @@ static uint8_t retrieve_value_hexadecimal(char const **lineptr, retrieve_value_s
 	while (isxdigit((unsigned char) **lineptr)) {
 		ch_value = isdigit(**lineptr) ? **lineptr - '0' : **lineptr - 'A' + 10;
 
-		if (check_uint8_wrap(value, ch_value, 16, INM_VALUE_MAX)) {
+		if (check_uint8_wrap(value, ch_value, 16, max_value)) {
 			*status = RETRIEVE_VALUE_OUTOFBOUNDS;
 			return value;
 		}
@@ -152,12 +157,12 @@ static uint8_t retrieve_value_hexadecimal(char const **lineptr, retrieve_value_s
 					couldn't find any value
 	@return Value if status is OK, garbage value otherwise
 */
-static uint8_t retrieve_value_binary(char const **lineptr, retrieve_value_status *status) {
+static uint8_t retrieve_value_binary(char const **lineptr, retrieve_value_status *status, uint8_t max_value) {
 	uint8_t value = { 0 };
 	size_t valid_characters = 0;
 
 	while (**lineptr == '0' || **lineptr == '1') {
-		if (check_uint8_wrap(value, **lineptr - '0', 2, INM_VALUE_MAX)) {
+		if (check_uint8_wrap(value, **lineptr - '0', 2, max_value)) {
 			*status = RETRIEVE_VALUE_OUTOFBOUNDS;
 			return value;
 		}
@@ -183,11 +188,10 @@ static uint8_t retrieve_value_binary(char const **lineptr, retrieve_value_status
 					couldn't find any value
 	@return Value if status is OK, garbage value otherwise
 */
-static uint8_t retrieve_value_decimal(char const **lineptr, retrieve_value_status *status) {
+static uint8_t retrieve_value_decimal(char const **lineptr, retrieve_value_status *status, uint8_t max_value) {
 	uint8_t value = { 0 };
 	size_t valid_characters = 0;
 	bool negative = false;
-	uint8_t max_value = INM_VALUE_MAX;
 	if (**lineptr == '-') {
 		negative = true;
 		max_value = max_value / 2 + 1;
@@ -223,7 +227,7 @@ static uint8_t retrieve_value_decimal(char const **lineptr, retrieve_value_statu
 					couldn't find any value
 	@return Value if status is OK, garbage value otherwise
 */
-static uint8_t retrieve_value(char const **lineptr, retrieve_value_status *status) {
+static uint8_t retrieve_value(char const **lineptr, retrieve_value_status *status, uint8_t max_value) {
 	uint8_t value = { 0 };
 
 	if (search_line_end(lineptr) == PARSE_LINE_END) {
@@ -234,17 +238,65 @@ static uint8_t retrieve_value(char const **lineptr, retrieve_value_status *statu
 	if (**lineptr == '0' && *(*lineptr + 1) == 'X') {
 		/* Hexadecimal */
 		(*lineptr) += 2;
-		value = retrieve_value_hexadecimal(lineptr, status);
+		value = retrieve_value_hexadecimal(lineptr, status, max_value);
 	} else if (**lineptr == '0' && *(*lineptr + 1) == 'B') {
 		/* Binary */
 		(*lineptr) += 2;
-		value = retrieve_value_binary(lineptr, status);
+		value = retrieve_value_binary(lineptr, status, max_value);
 	} else {
 		/* Decimal */
-		value = retrieve_value_decimal(lineptr, status);
+		value = retrieve_value_decimal(lineptr, status, max_value);
 	}
 
 	return value;
+}
+
+/**
+ * @brief Gets an immediate value with retrieve_value, and
+ *		  packs it in a parse_argument
+ * @param lineptr Pointer to pointer to the line string
+ * @param status Pointer to retrieve_value_status holding
+ *				the retrieval information
+ * @param max_value Max value passed to retrieve_value
+ * @return parse_argument containing an immediate value,
+ *		or invalid value otherwise
+*/
+static parse_argument retrieve_inm(char const **lineptr, retrieve_value_status *status, uint8_t max_value) {
+	parse_argument argument = { .type = ARGUMENT_TYPE_INVALID };
+	argument.value.inm = retrieve_value(lineptr, status, max_value);
+	if (*status == RETRIEVE_VALUE_OK) {
+		argument.type = ARGUMENT_TYPE_INM;
+	}
+
+	return argument;
+}
+
+/**
+ * @brief Gets either a valid equ identifier or an immediate value
+ *		withing given bounds
+ * @param pinfo Pointer to parse_info struct
+ * @param lineptr Pointer to pointer to line string
+ * @param status Pointer to status holding retrieval status
+ * @param max_len Maximum length for the equ identifier
+ * @param max_value Maximum value for the immediate value
+ * @return parse_argument containing an equ identifier,
+ *		a valid immediate value or invalid value otherwise
+*/
+static parse_argument retrieve_inm_or_equ(parse_info *pinfo, char const **lineptr, retrieve_value_status *status, size_t max_len, uint8_t max_value) {
+	parse_argument argument = { .type = ARGUMENT_TYPE_INVALID };
+	char *identifier = retrieve_alnum_identifier(pinfo, lineptr, max_len);
+
+	if (identifier) {
+		argument.type = ARGUMENT_TYPE_EQU;
+		argument.value.equ_key = identifier;
+	} else {
+		argument.value.inm = retrieve_value(lineptr, status, max_value);
+		if (*status == RETRIEVE_VALUE_OK) {
+			argument.type = ARGUMENT_TYPE_INM;
+		}
+	}
+
+	return argument;
 }
 
 /**
@@ -258,13 +310,15 @@ static uint8_t retrieve_value(char const **lineptr, retrieve_value_status *statu
 			there is no text left after it.
 */
 static inline parse_line_status search_character(char const **lineptr, char ch) {
-	if (skip_spaces(lineptr) == PARSE_LINE_END)
+	if (skip_spaces(lineptr) == PARSE_LINE_END) {
 		return PARSE_LINE_END;
+	}
 
-	if (**lineptr == ch)
+	if (**lineptr == ch) {
 		(*lineptr)++;
-	else
+	} else {
 		return PARSE_LINE_END;
+	}
 
 	return skip_spaces(lineptr);
 }
@@ -304,7 +358,7 @@ static parse_line_status search_defined_equ(parse_info *pinfo, char const **line
 	}
 
 	retrieve_value_status status;
-	uint8_t value = retrieve_value(lineptr, &status);
+	uint8_t value = retrieve_value(lineptr, &status, MAX_INM_VALUE);
 	switch (status) {
 	case RETRIEVE_VALUE_INVALID:
 		trace("[Error] invalid value specified for equ identifier '%s' at line %zu\n", identifier, pinfo->parsing_line_index);
@@ -326,6 +380,64 @@ static parse_line_status search_defined_equ(parse_info *pinfo, char const **line
 
 	hash_table_put(&pinfo->equs_ht, identifier, &value);
 	free(identifier);
+	return PARSE_LINE_END;
+}
+
+static parse_line_status search_opcode(parse_info *pinfo, char const **lineptr) {
+	if (strncmp(*lineptr, OPCODE_KEYWORD, OPCODE_KEYWORD_LENGTH)) return PARSE_LINE_KEEP;
+	(*lineptr) += OPCODE_KEYWORD_LENGTH;
+
+	retrieve_value_status status = { 0 };
+	parse_argument msbyte = retrieve_inm(lineptr, &status, MAX_INM_VALUE);
+	switch (status) {
+	case RETRIEVE_VALUE_INVALID:
+		trace("[Error] invalid value specified as MSB for opcode at line %zu\n", pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	case RETRIEVE_VALUE_OUTOFBOUNDS:
+		trace("[Error] value specified as MSB for opcode is out of bounds at line %zu\n", pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	default:
+		break;
+	}
+
+	if (search_character(lineptr, ARG_SEP_MARK) == PARSE_LINE_END) {
+		trace("[Error] invalid format for opcode at line %zu\n", pinfo->parsing_line_index);
+		return;
+	}
+
+	parse_argument lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, MAX_EQU_LENGTH, MAX_INM_VALUE);
+	switch (status) {
+	case RETRIEVE_VALUE_INVALID:
+		trace("[Error] invalid value specified as LSB for opcode at line %zu\n", pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	case RETRIEVE_VALUE_OUTOFBOUNDS:
+		trace("[Error] value specified as LSB for opcode is out of bounds at line %zu\n", pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	default:
+		break;
+	}
+
+	if (search_line_end(lineptr) == PARSE_LINE_KEEP) {
+		trace("[Error] expected end of line after opcode at line %zu\n", pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	}
+
+	if (pinfo->sentence_index + 1 >= ROM_SIZE) {
+		trace("[Error] maximum sentence lines reached (%u)\n", ROM_SIZE);
+		return PARSE_LINE_ERROR;
+	}
+
+	uint16_t raw_sentence = ((uint16_t) msbyte.value.inm << 8) + (uint16_t) msbyte.value.inm;
+	parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
+	sentence->instruction = ins_get_from_sentence(raw_sentence);
+	if (!sentence->instruction) {
+		trace("[Error] unknown instruction with opcode '%#x' (MSB %#x) at line %zu\n", (msbyte.value.inm & 0xF8U) >> 3, msbyte.value.inm, pinfo->parsing_line_index);
+		return PARSE_LINE_ERROR;
+	}
+	sentence->arg_a = msbyte;
+	sentence->arg_a.value.inm &= 0x07U;
+	sentence->arg_b = lsbyte;
+	pinfo->sentence_index++;
 	return PARSE_LINE_END;
 }
 
@@ -372,31 +484,6 @@ static parse_line_status search_line_equ(parse_info *pinfo, char const **lineptr
 }
 
 /**
-	@brief Searchs for a inmediate argument or an equ identifier
-	@param lineptr Pointer to pointer to the line string
-	@param status Pointer to a status to indicate the status of the
-				value retrieval when argument is any type different
-				from ARGUMENT_TYPE_EQU
-	@return A valid parse argument if found,
-			a parse argument with ARGUMENT_TYPE_INVALID type otherwise
-*/
-static parse_argument search_inm_equ(parse_info *pinfo, char const **lineptr, retrieve_value_status *status) {
-	parse_argument argument = { .type = ARGUMENT_TYPE_INVALID };
-
-	char *identifier = retrieve_alnum_identifier(pinfo, lineptr, MAX_EQU_LENGTH);
-	if (identifier) {
-		argument.type = ARGUMENT_TYPE_EQU;
-		argument.value.equ_key = identifier;
-	} else {
-		argument.value.inm = retrieve_value(lineptr, status);
-		if (*status == RETRIEVE_VALUE_OK)
-			argument.type = ARGUMENT_TYPE_INM;
-	}
-
-	return argument;
-}
-
-/**
 	@brief Searchs for a register argument
 	@param lineptr Pointer to pointer to the line string
 	@return A valid parse argument with type ARGUMENT_TYPE_INM if found,
@@ -406,7 +493,7 @@ static parse_argument search_register(char const **lineptr, bool allow_indirect_
 	parse_argument argument = { .type = ARGUMENT_TYPE_INVALID };
 	bool indirect = false;
 
-	if (**lineptr == '(') {
+	if (**lineptr == INDIRECT_REG_OP_MARK) {
 		if (allow_indirect_syntax) {
 			indirect = true;
 			(*lineptr)++;
@@ -415,18 +502,26 @@ static parse_argument search_register(char const **lineptr, bool allow_indirect_
 		}
 	}
 
-	skip_spaces(lineptr);
+	if (skip_spaces(lineptr) == PARSE_LINE_END) {
+		return argument;
+	}
+
 	if (**lineptr == 'R' && *(*lineptr + 1) >= '0' && *(*lineptr + 1) <= '8') {
 		argument.type = ARGUMENT_TYPE_INM;
 		argument.value.inm = *(*lineptr + 1) - '0';
 		*lineptr += 2;
 	}
-	skip_spaces(lineptr);
 
-	if ((indirect && **lineptr != ')') || (!indirect && **lineptr == ')'))
+	if (skip_spaces(lineptr) == PARSE_LINE_END) {
 		argument.type = ARGUMENT_TYPE_INVALID;
-	else if (**lineptr == ')')
+		return argument;
+	}
+
+	if ((indirect && **lineptr != ')') || (!indirect && **lineptr == ')')) {
+		argument.type = ARGUMENT_TYPE_INVALID;
+	} else if (**lineptr == ')') {
 		(*lineptr)++;
+	}
 
 	return argument;
 }
@@ -437,8 +532,9 @@ static parse_argument search_register(char const **lineptr, bool allow_indirect_
 */
 static inline void free_argument(parse_argument *arg_ptr) {
 	if (arg_ptr->type == ARGUMENT_TYPE_EQU &&
-		arg_ptr->value.equ_key)
+		arg_ptr->value.equ_key) {
 		free(arg_ptr->value.equ_key);
+	}
 }
 
 /**
@@ -453,7 +549,6 @@ static parse_line_status parse_instruction_fa(parse_info *pinfo, char const **li
 	parse_argument *reg_dst = &sentence->arg_a;
 	parse_argument *reg_src = &sentence->arg_b;
 
-	//For some reason this is inverted...
 	if (sentence->instruction->index == INS_I_ST) {
 		reg_dst = &sentence->arg_b;
 		reg_src = &sentence->arg_a;
@@ -493,7 +588,7 @@ static parse_line_status parse_instruction_fb(parse_info *pinfo, char const **li
 
 	if (sentence->instruction->index == INS_I_STS) {
 		retrieve_value_status status = { 0 };
-		*inm_address = search_inm_equ(pinfo, lineptr, &status);
+		*inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, MAX_EQU_LENGTH, MAX_INM_VALUE);
 		if (inm_address->type == ARGUMENT_TYPE_INVALID) {
 			trace("[Error] invalid value/address as parameter 1 of instruction '%s' at line %zu\n", sentence->instruction->name, pinfo->parsing_line_index);
 			return PARSE_LINE_ERROR;
@@ -519,7 +614,7 @@ static parse_line_status parse_instruction_fb(parse_info *pinfo, char const **li
 		}
 	} else {
 		retrieve_value_status status = { 0 };
-		*inm_address = search_inm_equ(pinfo, lineptr, &status);
+		*inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, MAX_EQU_LENGTH, MAX_INM_VALUE);
 		if (inm_address->type == ARGUMENT_TYPE_INVALID) {
 			trace("[Error] invalid value/address as parameter 2 of instruction '%s' at line %zu\n", sentence->instruction->name, pinfo->parsing_line_index);
 			return PARSE_LINE_ERROR;
@@ -545,7 +640,7 @@ static parse_line_status parse_instruction_fc(parse_info *pinfo, char const **li
 	jump_condition->value.inm = ins_get_jmp_condition(sentence->instruction);
 
 	retrieve_value_status status = { 0 };
-	*inm_address = search_inm_equ(pinfo, lineptr, &status);
+	*inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, MAX_EQU_LENGTH, MAX_INM_VALUE);
 	if (inm_address->type == ARGUMENT_TYPE_INVALID) {
 		trace("[Error] invalid address as parameter 1 of instruction '%s' at line %zu\n", sentence->instruction->name, pinfo->parsing_line_index);
 		return PARSE_LINE_ERROR;
@@ -616,7 +711,6 @@ static parse_line_status search_instruction(parse_info *pinfo, char const **line
 	}
 	free(instruction_name);
 
-	skip_spaces(lineptr);
 	parse_line_status result = { 0 };
 	switch (sentence->instruction->format) {
 	case INS_FORMAT_A:
@@ -659,10 +753,23 @@ static parse_line_status search_instruction(parse_info *pinfo, char const **line
 	return PARSE_LINE_END;
 }
 
-void parse_init(parse_info *pinfo) {
+bool parse_init(parse_info *pinfo) {
 	pinfo->parsing_line_index = 0;
 	pinfo->sentence_index = 0;
-	hash_table_init(&pinfo->equs_ht);
+	if (!hash_table_init(&pinfo->equs_ht)) {
+		return false;
+	}
+	pinfo->trace_buf = malloc(MAX_TRACE_LENGTH + 1);
+	if (!pinfo->trace_buf) {
+		hash_table_free(&pinfo->equs_ht);
+		return false;
+	}
+	pinfo->trace = malloc(MAX_TRACE_LENGTH + 1);
+	if (!pinfo->trace) {
+		hash_table_free(&pinfo->equs_ht);
+		free(pinfo->trace_buf);
+	}
+	return true;
 }
 
 void parse_free(parse_info *pinfo) {
@@ -671,6 +778,8 @@ void parse_free(parse_info *pinfo) {
 		free_argument(&pinfo->sentences[i].arg_a);
 		free_argument(&pinfo->sentences[i].arg_b);
 	}
+	free(pinfo->trace_buf);
+	free(pinfo->trace);
 }
 
 parse_status parse_line(parse_info *pinfo, char const *line) {
@@ -703,6 +812,16 @@ parse_status parse_line(parse_info *pinfo, char const *line) {
 		return PARSE_ERROR;
 	case PARSE_LINE_WARNING:
 		return PARSE_WARNING;
+	default:
+		break;
+	}
+
+	/* Search opcodes */
+	switch (search_opcode(pinfo, lineptr)) {
+	case PARSE_LINE_END:
+		return PARSE_OK;
+	case PARSE_LINE_ERROR:
+		return PARSE_ERROR;
 	default:
 		break;
 	}

@@ -18,7 +18,7 @@
 #define MAX_TRACE_LENGTH 512
 #define MAX_EQU_LENGTH 64
 #define ROM_SIZE 256
-#define INM_VALUE_MAX 255
+#define MAX_INM_VALUE 255
 
 #define ARGUMENT_TYPE_INM 0
 #define ARGUMENT_TYPE_EQU 1
@@ -52,9 +52,9 @@ struct parse_info {
 	/** @brief Hash table containig all equ replacements */
 	hash_table equs_ht;
 	/** @brief Trace buffer */
-	char trace_buf[MAX_TRACE_LENGTH];
+	char *trace_buf;
 	/** @brief Trace string */
-	char trace[MAX_TRACE_LENGTH * 2];
+	char *trace;
 	/** @brief Array containing all valid parsed sentences */
 	parse_sentence sentences[ROM_SIZE];
 	/** @brief Array containing assembled binary code */
@@ -71,8 +71,9 @@ typedef enum parse_status parse_status;
 	@brief Initiliazes a parse_info struct
 	@param pinfo Pointer to parse_info struct to be initialized
 	@param traceout Pointer to tracing function
+	@return true if success, false otherwise
 */
-void parse_init(parse_info *pinfo);
+bool parse_init(parse_info *pinfo);
 
 /**
 	@brief Parses one line of the assembly code.

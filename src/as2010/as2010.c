@@ -75,7 +75,11 @@ int main(int argc, char **argv) {
 	}
 
 	ins_search_start();
-	parse_init(&pinfo);
+
+	if (!parse_init(&pinfo)) {
+		printf("Error: couldn't initialize assembly due to memory exhaustion");
+		goto end;
+	}
 
 	fp = fopen(argv[1], "r");
 	if (!fp) {

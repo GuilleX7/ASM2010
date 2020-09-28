@@ -283,7 +283,11 @@ static parse_status parse_source(Ihandle *window, parse_info *pinfo) {
 static void export_file(Ihandle *window) {
     Ihandle *status_multitext = IupGetChild(IupGetDialogChild(window, "STATUS_VBOX"), 0);
     parse_info pinfo = { 0 };
-    parse_init(&pinfo);
+    if (!parse_init(&pinfo)) {
+        trace(status_multitext, "[Error] couldn't initialize assembly due to memory exhaustion\n");
+        return;
+    }
+
     if (parse_source(window, &pinfo) == PARSE_OK) {
         switch (export_code_to_file(actual_export_filepath, pinfo.bincode, pinfo.sentence_index, actual_export_format)) {
         case EXPORT_FILE_ERROR:
@@ -392,8 +396,13 @@ static int save_item_cb(Ihandle *self) {
 }
 
 static int assemble_item_cb(Ihandle *self) {
+    Ihandle *main_window = IupGetDialog(self);
+    Ihandle *status_multitext = IupGetChild(IupGetDialogChild(main_window, "STATUS_VBOX"), 0);
     parse_info pinfo = { 0 };
-    parse_init(&pinfo);
+    if (!parse_init(&pinfo)) {
+        trace(status_multitext, "[Error] couldn't initialize assembly due to memory exhaustion\n");
+        return IUP_IGNORE;
+    }
     parse_source(IupGetDialog(self), &pinfo);
     parse_free(&pinfo);
     return IUP_IGNORE;
@@ -473,14 +482,13 @@ static int source_multitext_valuechanged_cb(Ihandle *self) {
 
 static int dropfiles_cb(Ihandle *self, const char *filepath, int num, int x, int y) {
     Ihandle *window = IupGetDialog(self);
-
     if (num != 0) {
         return IUP_DEFAULT;
     }
-    
     if (save_check(window)) {
         open_file(window, filepath);
     }
+    return IUP_DEFAULT;
 }
 
 /* Main function */
