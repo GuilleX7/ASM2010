@@ -79,13 +79,11 @@ if (AS2010_GUI_BUILD)
 	target_link_libraries(as2010-gui ${REQUIRED_GUI_LIBS})
 	if (WIN32)
 		set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
-		if (MSVC)
-			# Link with IUP manifest
-			add_custom_command(
-			   TARGET as2010-gui
-			   POST_BUILD
-			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\as2010-gui.exe\"\;\#1
-			)
-		endif (MSVC)
+		# Link with IUP manifest
+		add_custom_command(
+			TARGET as2010-gui
+			POST_BUILD
+			COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\as2010-gui.exe\"\;\#1
+		)
 	endif (WIN32)
 endif (AS2010_GUI_BUILD)
