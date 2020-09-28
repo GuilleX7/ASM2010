@@ -8,9 +8,9 @@ Only AS2010 is available now.
 - Both command line interface and GUI (built-in simple text editor) for AS2010
 - ~~Easy debug with microoperation or instruction stepping~~ *(M2010 not ready yet)*
 ## Build
-**CMake** is used for building this project. Three targets are available: **as2010**, **as2010-gui** and **m2010.**
+**CMake** is used for building this project. This projects relies on no specific compiler, so it should be portable across compilers. Three targets are available: **as2010**, **as2010-gui** and **m2010.**
 - **as2010** is a CLI assembler that uses only standard library, so can be built in almost any conforming C99 platform.
-- Both **as2010-gui** and **m2010** use **IUP** (https://www.tecgraf.puc-rio.br/iup/), which is a lightweight, multiplatform C GUI library. This repository provides an already built version of this library for both Windows and GNU/Linux, x86 and x64. However, you can choose to link against your own library: just turn off (or not, if you want CMake to look in project's lib folders) ASM2010_DEFAULTLIB in CMake cache and install your own version of the library.
+- Both **as2010-gui** and **m2010** use **IUP** (https://www.tecgraf.puc-rio.br/iup/), which is a lightweight, multiplatform C GUI library. This repository provides an already built version of this library for Windows-MSVC, Windows-MinGW and GNU/Linux-GCC, each of them both in x86 and x64. However, you can choose to link against your own library: just turn off (or not, if you want CMake to look in project's lib folders) ASM2010_DEFAULTLIB in CMake cache and install your own version of the library.
 
 You can choose whether to build a target or not by setting CMake options "AS2010_BUILD", "AS2010_GUI_BUILD" and "M2010_BUILD".
 
@@ -20,5 +20,6 @@ Once everything is configured, building is quite simple:
     cd build
     cmake ..
     cmake --build .
+    
 ## Logisim version
 Folder "logisim" contains two implementations of the CS2010: one with IO extension and one without. A port to Digital is under consideration, due to improvements in performance.
