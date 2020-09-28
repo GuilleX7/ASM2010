@@ -25,7 +25,7 @@ The CS2010-IO adds an IO controller so it can communicate with (virtual) externa
                        -----------------------
                                  ||
 -------------------   ------------------------
--   RAM MEMORY    -   -     IO CONTROLLER    -
+-        RAM      -   -     IO CONTROLLER    -
 -------------------   ------------------------
 	||                       ||
 ----------------------------------------------
@@ -34,7 +34,7 @@ The CS2010-IO adds an IO controller so it can communicate with (virtual) externa
 ```
 This scheme has several implications:
 
- - First eight bytes of RAM memory are wasted, in the sense that they are never used.
+ - First eight bytes of RAM are wasted, in the sense that they are never used.
  - One could write (or read) more than one byte to an external device, as the memory is contained in the device as it prefers, but only one byte can be transferred through the IO bus at once (because IO memory is accesed with regular CS2010 instructions).
  
 As an example of this, the keyboard integrated circuit can be configurated by writing at its memory address, but it can also be read to retrieve keycodes.
