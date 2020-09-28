@@ -22,7 +22,7 @@
  * @param file_path Pointer to file path
  * @return A pointer starting at the file name (without directories)
 */
-const char *get_file_name(const char *file_path);
+char const *get_file_name(char const *file_path);
 
 /**
  * @brief Gets a file path and returns a new allocated
@@ -32,7 +32,7 @@ const char *get_file_name(const char *file_path);
  * @return A pointer to new allocated string containing the new file
  *		   path with new extension
 */
-char *change_path_extension(const char *file_path, const char *new_extension);
+char *change_path_extension(char const *file_path, char const *new_extension);
 
 /**
  * @brief Exports a given parse_info struct to a file with
@@ -42,6 +42,6 @@ char *change_path_extension(const char *file_path, const char *new_extension);
  * @param export_format Hexadecimal or binary formats
  * @return 
 */
-int export_code_to_file(const char *file_path, uint16_t *code, size_t code_size, int export_format);
+int export_code_to_file(char const *file_path, uint16_t *code, size_t code_size, int export_format);
 
 #endif /* FILE_H */

@@ -2,7 +2,7 @@
 
 static char const cs2010_bin_signature[] = { 'C', 'S', '2', '0', '1', '0' };
 
-const char *get_file_name(const char *file_path) {
+char const *get_file_name(char const *file_path) {
     if (!file_path || !*file_path) return 0;
     size_t offset = strlen(file_path) - 1;
     while (offset) {
@@ -15,7 +15,7 @@ const char *get_file_name(const char *file_path) {
     return file_path + offset;
 }
 
-char *change_path_extension(const char *file_path, const char *new_extension) {
+char *change_path_extension(char const *file_path, char const *new_extension) {
     char *result = { 0 };
     if (!file_path || !*file_path) return 0;
     char *dot_ptr = strrchr(file_path, (unsigned char) '.');
@@ -36,7 +36,7 @@ char *change_path_extension(const char *file_path, const char *new_extension) {
     return result;
 }
 
-int export_code_to_file(const char *file_path, uint16_t *code, size_t code_size, int export_format) {
+int export_code_to_file(char const *file_path, uint16_t *code, size_t code_size, int export_format) {
     FILE *fp = fopen(file_path, (export_format == EXPORT_FORMAT_BIN) ? "wb" : "w");
     if (!fp) {
         return EXPORT_FILE_ERROR;
