@@ -35,10 +35,9 @@ set(AS2010_GUI_SOURCE
 "src/as2010/as2010_gui.c"
 )
 
-# Static libraries
-add_library(asm2010-common STATIC ${ASM2010_COMMON_SOURCE})
-add_library(as2010-common STATIC ${AS2010_COMMON_SOURCE})
-target_link_libraries(as2010-common "asm2010-common")
+# Object libraries
+add_library(asm2010-common OBJECT ${ASM2010_COMMON_SOURCE})
+add_library(as2010-common OBJECT ${AS2010_COMMON_SOURCE} $<TARGET_OBJECTS:asm2010-common>)
 
 # Check whether GUI is built or not
 set(ASM2010_GUI_BUILD AS2010_GUI_BUILD)
@@ -73,14 +72,12 @@ endif (ASM2010_GUI_BUILD)
 
 # as2010 build
 if (AS2010_BUILD)
-	add_executable(as2010 ${AS2010_SOURCE})
-	target_link_libraries(as2010 "as2010-common")
+	add_executable(as2010 ${AS2010_SOURCE} $<TARGET_OBJECTS:as2010-common> $<TARGET_OBJECTS:asm2010-common>)
 endif (AS2010_BUILD)
 
 # as2010-gui build
 if (AS2010_GUI_BUILD)
-	add_executable(as2010-gui ${AS2010_GUI_SOURCE})
-	target_link_libraries(as2010-gui "as2010-common")
+	add_executable(as2010-gui ${AS2010_GUI_SOURCE} $<TARGET_OBJECTS:as2010-common> $<TARGET_OBJECTS:asm2010-common>)
 	target_link_libraries(as2010-gui ${REQUIRED_GUI_LIBS})
 	if (WIN32)
 		set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
