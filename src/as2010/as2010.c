@@ -1,6 +1,6 @@
-#ifdef _MSC_BUILD
+#ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
-#endif /* MSC_BUILD */
+#endif /* _MSC_VER */
 
 #include <stdio.h>
 #include <stddef.h>
