@@ -13,6 +13,11 @@ option(ASM2010_DEFAULTLIB "Search for IUP in project lib folders (lib32 and lib6
 # Tell CMake to distinguish between x32 and x64
 set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB32_PATHS TRUE)
 set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+# Set output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
 
 # Source code
 set(ASM2010_COMMON_SOURCE
@@ -84,7 +89,7 @@ if (AS2010_GUI_BUILD)
 			add_custom_command(
 			   TARGET as2010-gui
 			   POST_BUILD
-			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\as2010-gui.exe\"\;\#1
+			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\bin\\as2010-gui.exe\"\;\#1
 			)
 		endif (MSVC)
 	endif (WIN32)
