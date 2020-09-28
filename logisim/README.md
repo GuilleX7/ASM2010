@@ -91,7 +91,7 @@ M can take two values:
 
 | M | Mode            | Description                                                                                                                                                                       |
 |---|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 0 | Default mode    | Button signal will be sent until the matching button is released.                                                                                                                 |
+| 0 | Default mode    | Button signal will be available for reading until the signal has been read and button is released.                                                                                                       |
 | 1 | Non-repeat mode | Button signal will be available for reading only once when a button is pressed.<br>Once the signal has been read, the following signals will be 0 if the button is still pressed. |
 
 Bits marked with a hyphen can take any value.
