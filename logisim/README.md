@@ -103,7 +103,7 @@ Bits marked with a hyphen can take any value.
 |---------|---|----|----|----|----|----|----|----|
 | Content | 0 | A6 | A5 | A4 | A3 | A2 | A1 | A0 |
 
-Ax stands for each digit of a ASCII-encoded character. Each time the device is read, the first unread character is sent. The keyboard has a buffer with capacity for 256 unread characters and will discard the following characters if it is already full. Attempting to read the keyboard without characters waiting to be read will sent a byte with all its bits set to 0.
+Ax stands for each digit of a ASCII-encoded character. Each time the device is read, the first unread character is send. The keyboard has a buffer with capacity for 256 unread characters and will discard the following characters if it is already full. Attempting to read the keyboard without characters waiting to be read will sent a byte with all its bits set to 0.
 
 **Writing:** keyboard can be configurated by writing the following values:
 
@@ -180,11 +180,11 @@ Rx stands for each random bit.
 
 ## IOz port details
 This three-bit wide port contains the following signals:
-```markdown
+
 | Bit | 2 | 1 | 0   |
 |-----|---|---|-----|
 |     | R | W | CLK |
-```
+
 - CLK signal matchs the CS2010 clock, and should be used to synchronizate
 - W signal requests the device to retrieve the data that comes from the IOIN bus (matchs with a ST instruction at the address where the device is mapped to)
 - R signal requests the device to put data in the IOHOUT bus (matchs with a LD instruction at the address where the device is mapped to)
