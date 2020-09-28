@@ -1,3 +1,4 @@
+
 # ASM2010
 ASM2010 stands for **AS**sembler and e**M**ulator **2010**. It comprises an assembler (AS2010) and a emulator (M2010) for the academic CS2010 instruction set architecture.
 
@@ -19,3 +20,5 @@ Once everything is configured, building is quite simple:
     cd build
     cmake ..
     cmake --build .
+## Logisim version
+Folder "logisim" contains two implementations of the CS2010: one with IO extension and one without. A port to Digital is under consideration, due to improvements in performance.
