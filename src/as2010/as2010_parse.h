@@ -5,13 +5,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
-#include <stdio.h> /* sprintf */
-#include <stdlib.h> /* malloc, free */
-#include <stdint.h> /* int types */
-#include <string.h> /* strlen */
-#include <ctype.h> /* isalnum */
-#include "../instructions.h" /* ins_list */
-#include "../hash_table.h" /* hash_table */
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <ctype.h>
+#include "../instructions.h"
+#include "../hash_table.h"
 
 #define MAX_SOURCE_LINES 65535
 #define MAX_LINE_LENGTH 256
@@ -23,6 +23,14 @@
 #define ARGUMENT_TYPE_INM 0
 #define ARGUMENT_TYPE_EQU 1
 #define ARGUMENT_TYPE_INVALID 2
+
+#define PARSER_NAME "AS2010"
+#define PARSER_MAJOR_VERSION 0
+#define PARSER_MINOR_VERSION 1
+#define PARSER_PATCH_VERSION 0
+
+#define STRGIFY(a) #a
+#define STRINGIFY(a) STRGIFY(a)
 
 struct parse_argument {
 	union {

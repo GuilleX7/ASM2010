@@ -24,18 +24,27 @@ static int read_upper_line(char *line, int max_length, FILE *fp) {
 }
 
 static void show_help(void) {
-	puts("USAGE: asm2010 file [parameters]\n\n"
+	puts(
+		"USAGE: asm2010 file [parameters]\n\n"
 		"PARAMETERS:\n"
 		"-help\tShow this help\n"
 		"-bin\tUse binary format as output (default)\n"
 		"-hex\tUse textual hexadecimal format as output (suitable for Logisim)\n"
-		"-o file\tOutput to the given file (will be overwritten)\n");
+		"-o file\tOutput to the given file (will be overwritten)\n"
+		"-v\tShows about information\n");
+}
+
+static void show_about(void) {
+	puts(
+		"AS2010 v" STRINGIFY(PARSER_MAJOR_VERSION) "." STRINGIFY(PARSER_MINOR_VERSION) "." STRINGIFY(PARSER_PATCH_VERSION) " - CS2010 assembler\n"
+		"Developed by GuilleX7 - guillermox7@gmail.com\n"
+		"https://github.com/GuilleX7/\n");
 }
 
 int main(int argc, char **argv) {
-	parse_info pinfo;
+	parse_info pinfo = { 0 };
 	char line[MAX_LINE_LENGTH + 2];
-	FILE *fp;
+	FILE *fp = { 0 };
 	int output_format = EXPORT_FORMAT_BIN;
 	char *output_path = { 0 };
 	char const *arg = { 0 };
@@ -49,6 +58,9 @@ int main(int argc, char **argv) {
 
 	if (!strcmp(argv[1], "-help")) {
 		show_help();
+		return EXIT_SUCCESS;
+	} else if (!strcmp(argv[1], "-v")) {
+		show_about();
 		return EXIT_SUCCESS;
 	}
 
@@ -68,6 +80,9 @@ int main(int argc, char **argv) {
 			}
 		} else if (!strcmp(arg, "-help")) {
 			show_help();
+			return EXIT_SUCCESS;
+		} else if (!strcmp(arg, "-v")) {
+			show_about();
 			return EXIT_SUCCESS;
 		} else {
 			printf("Error: unknown parameter '%s'\n", arg);
@@ -89,7 +104,9 @@ int main(int argc, char **argv) {
 
 	while (read_upper_line(line, MAX_LINE_LENGTH + 2, fp)) {
 		status = parse_line(&pinfo, line);
-		if (*pinfo.trace) puts(pinfo.trace);
+		if (pinfo.trace && *pinfo.trace) {
+			puts(pinfo.trace);
+		}
 		if (status == PARSE_ERROR) {
 			printf("Aborting assembly...\n");
 			goto end;
@@ -99,7 +116,9 @@ int main(int argc, char **argv) {
 	fp = 0;
 
 	status = parse_assemble(&pinfo);
-	if (*pinfo.trace) puts(pinfo.trace);
+	if (pinfo.trace && *pinfo.trace) {
+		puts(pinfo.trace);
+	}
 	if (status == PARSE_ERROR) {
 		printf("Aborting assembly...\n");
 		goto end;

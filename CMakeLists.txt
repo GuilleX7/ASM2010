@@ -37,7 +37,7 @@ set(AS2010_GUI_SOURCE
 
 # Object libraries
 add_library(asm2010-common OBJECT ${ASM2010_COMMON_SOURCE})
-add_library(as2010-common OBJECT ${AS2010_COMMON_SOURCE} $<TARGET_OBJECTS:asm2010-common>)
+add_library(as2010-common OBJECT ${AS2010_COMMON_SOURCE})
 
 # Check whether GUI is built or not
 set(ASM2010_GUI_BUILD AS2010_GUI_BUILD)

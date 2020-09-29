@@ -1,9 +1,9 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include <stdint.h> /* uint16_t */
-#include <stdbool.h> /* bool */
-#include "hash_table.h" /* hash_table */
+#include <stdint.h>
+#include <stdbool.h>
+#include "hash_table.h"
 
 #define INSTRUCTION_MAX_LENGTH 4
 

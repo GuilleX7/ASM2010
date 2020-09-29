@@ -402,7 +402,7 @@ static parse_line_status search_opcode(parse_info *pinfo, char const **lineptr) 
 
 	if (search_character(lineptr, ARG_SEP_MARK) == PARSE_LINE_END) {
 		trace("[Error] invalid format for opcode at line %zu\n", pinfo->parsing_line_index);
-		return;
+		return PARSE_LINE_ERROR;
 	}
 
 	parse_argument lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, MAX_EQU_LENGTH, MAX_INM_VALUE);
@@ -763,7 +763,7 @@ bool parse_init(parse_info *pinfo) {
 		hash_table_free(&pinfo->equs_ht);
 		return false;
 	}
-	pinfo->trace = malloc(MAX_TRACE_LENGTH + 1);
+	pinfo->trace = malloc(MAX_TRACE_LENGTH * 4 + 1);
 	if (!pinfo->trace) {
 		hash_table_free(&pinfo->equs_ht);
 		free(pinfo->trace_buf);
@@ -777,8 +777,12 @@ void parse_free(parse_info *pinfo) {
 		free_argument(&pinfo->sentences[i].arg_a);
 		free_argument(&pinfo->sentences[i].arg_b);
 	}
-	free(pinfo->trace_buf);
-	free(pinfo->trace);
+	if (pinfo->trace_buf) {
+		free(pinfo->trace_buf);
+	}
+	if (pinfo->trace) {
+		free(pinfo->trace);
+	}
 }
 
 parse_status parse_line(parse_info *pinfo, char const *line) {

@@ -2,8 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
-#define PROGRAM_TITLE "AS2010"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +10,7 @@
 #include <locale.h>
 
 #include <iup/iup.h>
+#include <iup/iup_scintilla.h>
 
 #include "../file.h"
 
@@ -24,6 +23,12 @@ static char *actual_export_filepath = { 0 };
 static int actual_export_format = 0;
 static bool dirty = false;
 
+/* They just needed declaration */
+static int save_item_cb(Ihandle * self);
+static char *read_file(char const *filepath);
+static void mark_actual_source(Ihandle * window, char const *filepath);
+static void clear_actual(Ihandle * window);
+
 /* Source file functions */
 
 /**
@@ -33,9 +38,6 @@ static bool dirty = false;
  * @return true if file was readed successfully, false otherwise
 */
 static bool open_file(Ihandle *window, char const *filepath) {
-    extern void clear_actual(Ihandle *);
-    extern char *read_file(char const *);
-    extern void mark_actual_source(Ihandle *, char const *);
     Ihandle *source_multitext = IupGetDialogChild(window, "SOURCE_MULTITEXT");
     char *str = read_file(filepath);
     if (str) {
@@ -135,7 +137,7 @@ static void mark_actual_source(Ihandle *window, char const *filepath) {
     if (!actual_source_filepath) return;
     strcpy(actual_source_filepath, filepath);
 
-    IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PROGRAM_TITLE);
+    IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PARSER_NAME);
 }
 
 /**
@@ -168,7 +170,7 @@ static void clear_actual(Ihandle *window) {
     actual_export_filepath = 0;
     actual_export_format = 0;
 
-    IupSetAttribute(window, "TITLE", PROGRAM_TITLE);
+    IupSetAttribute(window, "TITLE", PARSER_NAME);
 }
 
 /**
@@ -178,7 +180,6 @@ static void clear_actual(Ihandle *window) {
  * @return true if user chooses to exit, false if user chooses to stay
 */
 static bool save_check(Ihandle *window) {
-    extern int save_item_cb(Ihandle * self);
     if (dirty) {
         switch (IupAlarm("Warning", "Source changes haven't been saved. Save it now?", "Save changes", "Ignore changes", "Cancel")) {
         case 1:  /* Save the changes and continue */
@@ -387,7 +388,7 @@ static int save_item_cb(Ihandle *self) {
     Ihandle *main_window = IupGetDialog(self);
     if (actual_source_filepath) {
         save_file(actual_source_filepath, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"));
-        IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PROGRAM_TITLE);
+        IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PARSER_NAME);
         dirty = false;
     } else {
         saveas_item_cb(self);
@@ -474,7 +475,7 @@ static int export_item_cb(Ihandle *self) {
 
 static int source_multitext_valuechanged_cb(Ihandle *self) {
     if (!dirty && actual_source_filepath) {
-        IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_filepath), PROGRAM_TITLE);
+        IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_filepath), PARSER_NAME);
     }
     dirty = true;
     return IUP_DEFAULT;
@@ -491,6 +492,19 @@ static int dropfiles_cb(Ihandle *self, const char *filepath, int num, int x, int
     return IUP_DEFAULT;
 }
 
+static int about_item_cb(Ihandle *self) {
+    Ihandle *about_window = IupMessageDlg();
+    IupSetAttribute(about_window, "BUTTONS", "OK");
+    IupSetAttribute(about_window, "DIALOGTYPE", "INFORMATION");
+    IupSetAttribute(about_window, "TITLE", "About");
+    IupSetStrf(about_window, "VALUE",
+        "AS2010 v" STRINGIFY(PARSER_MAJOR_VERSION) "." STRINGIFY(PARSER_MINOR_VERSION) "." STRINGIFY(PARSER_PATCH_VERSION) " - CS2010 assembler\n"
+        "Developed by GuilleX7 - guillermox7@gmail.com\n"
+        "https://github.com/GuilleX7/\n");
+    IupPopup(about_window, IUP_CENTER, IUP_CENTER);
+    return IUP_DEFAULT;
+}
+
 /* Main function */
 
 int main(int argc, char **argv) {
@@ -502,6 +516,8 @@ int main(int argc, char **argv) {
     Ihandle *file_menu, *file_submenu, *new_item, *open_item, *save_item, *saveas_item, *exit_item;
     /* Assembler menu */
     Ihandle *assembler_menu, *assembler_submenu, *assemble_item, *export_item, *exportas_item;
+    /* About menu */
+    Ihandle *about_menu, *about_submenu, *about_item;
     /* Source tab */
     Ihandle *source_multitext, *source_vbox, *status_multitext, *status_vbox, *split;
     /* Tabs */
@@ -561,9 +577,21 @@ int main(int argc, char **argv) {
     assembler_submenu = IupSubmenu("Assembler", assembler_menu);
     IupSetAttribute(assembler_submenu, "NAME", "ASSEMBLER_SUBMENU");
 
+    about_item = IupItem("About...", NULL);
+    IupSetAttribute(about_item, "NAME", "ABOUT_ITEM");
+    IupSetCallback(about_item, "ACTION", (Icallback) about_item_cb);
+    about_menu = IupMenu(
+        about_item,
+        NULL
+    );
+    IupSetAttribute(about_menu, "NAME", "ABOUT_MENU");
+    about_submenu = IupSubmenu("About", about_menu);
+    IupSetAttribute(about_submenu, "NAME", "ABOUT_ITEM");
+
     menu = IupMenu(
         file_submenu,
         assembler_submenu,
+        about_submenu,
         NULL
     );
     IupSetAttribute(menu, "NAME", "MENU");
