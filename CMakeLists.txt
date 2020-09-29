@@ -9,6 +9,7 @@ endif ()
 # Options
 option(AS2010_BUILD "Build AS2010" ON)
 option(AS2010_GUI_BUILD "Build AS2010-GUI" ON)
+option(M2010_BUILD "Build M2010" ON)
 option(ASM2010_DEFAULTLIB "Search for IUP in project lib folders (lib32 and lib64)" ON)
 # Tell CMake to distinguish between x32 and x64
 set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB32_PATHS TRUE)
@@ -21,12 +22,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
 
 # Source code
 set(ASM2010_COMMON_SOURCE
-"src/instructions.c"
 "src/hash_table.c"
-"src/file.c"
+"src/utils.c"
+"src/mcs.c"
+)
+set(CS2010_COMMON_SOURCE
+"src/cs2010/cs_instructions.c"
 )
 set(AS2010_COMMON_SOURCE
-"src/as2010/as2010_parse.c"
+"src/as2010/as_parse.c"
 )
 set(AS2010_SOURCE
 "src/as2010/as2010.c"
@@ -34,13 +38,17 @@ set(AS2010_SOURCE
 set(AS2010_GUI_SOURCE
 "src/as2010/as2010_gui.c"
 )
+set(M2010_SOURCE
+"src/m2010/m2010.c"
+)
 
 # Object libraries
 add_library(asm2010-common OBJECT ${ASM2010_COMMON_SOURCE})
+add_library(cs2010-common OBJECT ${CS2010_COMMON_SOURCE})
 add_library(as2010-common OBJECT ${AS2010_COMMON_SOURCE})
 
 # Check whether GUI is built or not
-set(ASM2010_GUI_BUILD AS2010_GUI_BUILD)
+set(ASM2010_GUI_BUILD AS2010_GUI_BUILD OR M2010_BUILD)
 
 if (ASM2010_GUI_BUILD)
 	# Includes
@@ -72,12 +80,12 @@ endif (ASM2010_GUI_BUILD)
 
 # as2010 build
 if (AS2010_BUILD)
-	add_executable(as2010 ${AS2010_SOURCE} $<TARGET_OBJECTS:as2010-common> $<TARGET_OBJECTS:asm2010-common>)
+	add_executable(as2010 ${AS2010_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common> $<TARGET_OBJECTS:as2010-common>)
 endif (AS2010_BUILD)
 
 # as2010-gui build
 if (AS2010_GUI_BUILD)
-	add_executable(as2010-gui ${AS2010_GUI_SOURCE} $<TARGET_OBJECTS:as2010-common> $<TARGET_OBJECTS:asm2010-common>)
+	add_executable(as2010-gui ${AS2010_GUI_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common> $<TARGET_OBJECTS:as2010-common>)
 	target_link_libraries(as2010-gui ${REQUIRED_GUI_LIBS})
 	if (WIN32)
 		set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
@@ -91,3 +99,20 @@ if (AS2010_GUI_BUILD)
 		endif (MSVC)
 	endif (WIN32)
 endif (AS2010_GUI_BUILD)
+
+# m2010 build
+if (M2010_BUILD)
+	add_executable(m2010 ${M2010_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common>)
+	target_link_libraries(m2010 ${REQUIRED_GUI_LIBS})
+	if (WIN32)
+		set_target_properties(m2010 PROPERTIES WIN32_EXECUTABLE TRUE)
+		if (MSVC)
+			# Link with IUP manifest
+			add_custom_command(
+			   TARGET m2010
+			   POST_BUILD
+			   COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\bin\\m2010.exe\"\;\#1
+			)
+		endif (MSVC)
+	endif (WIN32)
+endif (M2010_BUILD)
