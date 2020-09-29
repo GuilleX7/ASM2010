@@ -5,12 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdbool.h>
 #include <locale.h>
 
 #include <iup/iup.h>
-#include <iup/iup_scintilla.h>
 
 #include "../file.h"
 
