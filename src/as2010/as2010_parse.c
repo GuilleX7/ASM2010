@@ -29,13 +29,18 @@ enum retrieve_value_status {
 typedef enum retrieve_value_status retrieve_value_status;
 
 /**
-	@brief Computes the absolute value of its argument x.
-	@param x input value.
-	@return absolute value of \a x.
+	@brief Checks whether a uint8 (accumulator) would wrap after
+			multiplying it by a number and adding another number
+	@param accumulator Value accumulated (to be multiplied and added)
+	@param addend Value to be added to accumulator
+	@param multiplier Multiplier value
+	@param max Maximum value for accumulator that won't wrap after
+				carrying out the multiplications
+	@return true if the accumulator would wrap, false otherwise
 */
-static inline bool check_uint8_wrap(uint8_t addend1, uint8_t addend2, uint8_t divisor, uint8_t max) {
-	if (!divisor) divisor = 1;
-	return addend1 > (max - addend2) / divisor;
+static inline bool check_uint8_wrap(uint8_t accumulator, uint8_t addend, uint8_t multiplier, uint8_t max) {
+	if (!multiplier) multiplier = 1;
+	return accumulator > (max - addend) / multiplier;
 }
 
 /**
