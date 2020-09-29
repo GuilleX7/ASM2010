@@ -10,8 +10,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MIN_LOAD_FACTOR 0.15
-#define MAX_LOAD_FACTOR 0.75
+#define CHT_MIN_LOAD_FACTOR 0.15
+#define CHT_MAX_LOAD_FACTOR 0.75
 
 /** @brief Struct representing the hash table */
 struct hash_table {

@@ -118,7 +118,7 @@ int hash_table_put_sized(struct hash_table *hash_table, char *key, void *val, si
 	new_entry->next = hash_table->entries[hash];
 	hash_table->entries[hash] = new_entry;
 
-	if (hash_table->entry_count > hash_sizes[hash_table->size_index] * MAX_LOAD_FACTOR &&
+	if (hash_table->entry_count > hash_sizes[hash_table->size_index] * CHT_MAX_LOAD_FACTOR &&
 		hash_table->size_index < COUNT_OF(hash_sizes) - 1) {
 		hash_table_rehash(hash_table, hash_table->size_index + 1);
 	}
@@ -176,7 +176,7 @@ int hash_table_remove(struct hash_table *hash_table, char *key) {
 	free(entry);
 	hash_table->entry_count--;
 
-	if (hash_table->entry_count < hash_sizes[hash_table->size_index] * MIN_LOAD_FACTOR &&
+	if (hash_table->entry_count < hash_sizes[hash_table->size_index] * CHT_MIN_LOAD_FACTOR &&
 		hash_table->size_index > 0) {
 		hash_table_rehash(hash_table, hash_table->size_index - 1);
 	}
