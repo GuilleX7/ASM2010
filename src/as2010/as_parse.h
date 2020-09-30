@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "../cs2010/cs_instructions.h"
 #include "../cs2010/cs_memory.h"
