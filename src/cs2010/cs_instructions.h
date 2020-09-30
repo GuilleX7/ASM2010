@@ -70,7 +70,7 @@ struct cs_instruction {
 typedef struct cs_instruction cs_instruction;
 
 /** @brief Name and opcodes for each instruction */
-cs_instruction const CS_INS_LIST[];
+cs_instruction const CS_INS_LIST[CS_INS_LEN];
 
 /**
 	@brief Initializes the hash table. Searching names will be allowed from
