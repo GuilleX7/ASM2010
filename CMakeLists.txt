@@ -1,10 +1,16 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(ASM2010 C)
 set(C_STANDARD 99)
 if (NOT CMAKE_BUILD_TYPE)
-	set (CMAKE_BUILD_TYPE Release)
-endif ()
+	message("Build type not specified: assuming release")
+	set(CMAKE_BUILD_TYPE "Release")
+endif (NOT_CMAKE_BUILD_TYPE)
+
+# Set debug flag (not used yet)
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+	set(ASM2010_DEBUG ON)
+endif (CMAKE_BUILD_TYPE MATCHES "Debug")
 
 # Options
 option(AS2010_BUILD "Build AS2010" ON)
@@ -88,7 +94,10 @@ if (AS2010_GUI_BUILD)
 	add_executable(as2010-gui ${AS2010_GUI_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common> $<TARGET_OBJECTS:as2010-common>)
 	target_link_libraries(as2010-gui ${REQUIRED_GUI_LIBS})
 	if (WIN32)
-		set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
+		message(${CMAKE_BUILD_TYPE})
+		if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+			set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
+		endif ()
 		if (MSVC)
 			# Link with IUP manifest
 			add_custom_command(
@@ -105,7 +114,9 @@ if (M2010_BUILD)
 	add_executable(m2010 ${M2010_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common>)
 	target_link_libraries(m2010 ${REQUIRED_GUI_LIBS})
 	if (WIN32)
-		set_target_properties(m2010 PROPERTIES WIN32_EXECUTABLE TRUE)
+		if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+			set_target_properties(m2010 PROPERTIES WIN32_EXECUTABLE TRUE)
+		endif ()
 		if (MSVC)
 			# Link with IUP manifest
 			add_custom_command(

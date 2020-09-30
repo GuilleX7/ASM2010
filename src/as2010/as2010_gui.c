@@ -423,6 +423,7 @@ int main(int argc, char **argv) {
 
 	if (IupOpen(&argc, &argv) == IUP_ERROR) {
 		puts("Error while opening GUI, aborting execution...\n");
+		return EXIT_FAILURE;
 	}
 	IupSetGlobal("UTF8MODE", "YES");
 	setlocale(LC_ALL, "");
