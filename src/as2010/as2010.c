@@ -10,25 +10,32 @@
 
 #include "../utils.h"
 #include "../mcs.h"
+#include "../about.h"
 
 #include "as_parse.h"
 
+#define PROGRAM_NAME "AS2010"
+#define PROGRAM_DESCRIPTION "CS2010 assembler"
+
 static void show_help(void) {
 	puts(
-		"USAGE: asm2010 file [parameters]\n\n"
+		"USAGE: " PROGRAM_NAME " file [parameters]\n\n"
 		"PARAMETERS:\n"
 		"-help\tShow this help\n"
 		"-bin\tUse binary format as output (default)\n"
 		"-hex\tUse textual hexadecimal format as output (suitable for Logisim)\n"
 		"-o file\tOutput to the given file (will be overwritten)\n"
-		"-v\tShows about information\n");
+		"-v\tShows about information\n"
+	);
 }
 
 static void show_about(void) {
 	puts(
-		"AS2010 v" STRINGIFY(AS_PARSER_MAJOR_VERSION) "." STRINGIFY(AS_PARSER_MINOR_VERSION) "." STRINGIFY(AS_PARSER_PATCH_VERSION) " - CS2010 assembler\n"
-		"Developed by GuilleX7 - guillermox7@gmail.com\n"
-		"https://github.com/GuilleX7/\n");
+		MAKE_ABOUT_TEXT(
+			PROGRAM_NAME,
+			PROGRAM_DESCRIPTION
+		)
+	);
 }
 
 int main(int argc, char **argv) {
@@ -40,7 +47,7 @@ int main(int argc, char **argv) {
 	bool must_free_path = false;
 	char const *arg = { 0 };
 	as_parse_info pinfo = { 0 };
-	as_parse_status status = { 0 };
+	int status = { 0 };
 
 	if (argc < 2) {
 		show_help();
@@ -94,11 +101,11 @@ int main(int argc, char **argv) {
 
 	while (read_upper_line(line, AS_MAX_LINE_LENGTH + 2, file_str, &offset)) {
 		status = as_parse_line(&pinfo, line);
-		if (pinfo.trace && *pinfo.trace) {
-			puts(pinfo.trace);
+		if (!trace_log_is_empty(&pinfo.log)) {
+			puts(trace_log_get(&pinfo.log));
 		}
-		if (status == PARSE_ERROR) {
-			printf("Aborting assembly...\n");
+		if (status == AS_PARSE_ERROR) {
+			puts("Aborting assembly...\n");
 			as_parse_free(&pinfo);
 			free(file_str);
 			return EXIT_FAILURE;
@@ -106,19 +113,19 @@ int main(int argc, char **argv) {
 	}
 
 	status = as_parse_assemble(&pinfo);
-	if (pinfo.trace && *pinfo.trace) {
-		puts(pinfo.trace);
+	if (!trace_log_is_empty(&pinfo.log)) {
+		puts(trace_log_get(&pinfo.log));
 	}
-	if (status == PARSE_ERROR) {
-		printf("Aborting assembly...\n");
+	if (status == AS_PARSE_ERROR) {
+		puts("Aborting assembly...\n");
 		as_parse_free(&pinfo);
 		free(file_str);
 		return EXIT_FAILURE;
 	}
-	printf("Successfully assembled!\n");
+	puts("Successfully assembled!\n");
 
 	if (!output_path) {
-		output_path = change_path_extension(argv[1], (output_format == MCS_FORMAT_BIN) ? ".bin" : ".hex");
+		output_path = change_path_extension(argv[1], (output_format == MCS_FORMAT_BIN) ? MCS_FILE_BIN_EXT : MCS_FILE_HEX_EXT);
 		must_free_path = true;
 	}
 	switch (mcs_export_file(output_path, pinfo.machine_code, pinfo.sentence_index, output_format)) {
@@ -131,7 +138,7 @@ int main(int argc, char **argv) {
 	default:
 		break;
 	}
-	printf("Successfully exported file!\n");
+	puts("Successfully exported file!\n");
 
 	if (must_free_path) {
 		free(output_path);

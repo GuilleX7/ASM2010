@@ -1,0 +1,4 @@
+#ifndef M_COMP_REGISTER_H
+#define M_COMP_REGISTER_H
+
+#endif /* M_COMP_REGISTER_H */

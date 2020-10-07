@@ -1,10 +1,8 @@
 .equ HEX_DISPLAY1 = 0x00
-.equ HEX_DISPLAY2 = 0x01
 .equ KEYBOARD = 0x03
 .equ ASCII_START = 48
 
 main:   LDI R0, HEX_DISPLAY1 ; Load IO addresses
-        LDI R1, HEX_DISPLAY2
         LDI R1, KEYBOARD
 loop:   LD R3, (R1)          ; Get pressed key
 ascii:  SUBI R3, ASCII_START ; Check whether 48 <= key < 58,

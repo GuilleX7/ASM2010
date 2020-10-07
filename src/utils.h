@@ -13,9 +13,30 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #define STRGIFY(a) #a
 #define STRINGIFY(a) STRGIFY(a)
+
+#define COUNT_DIGITS(n, digits) \
+size_t digits = 1;\
+do {\
+size_t number = n;\
+while (number > 9) {\
+number /= 10;\
+digits++;\
+}\
+} while (0);\
+
+#ifdef _WIN32
+#  ifdef _WIN64
+#    define PRI_SIZET PRIu64
+#  else
+#    define PRI_SIZET PRIu32
+#  endif /* _WIN64 */
+#else
+#  define PRI_SIZET "zu"
+#endif /* _WIN32 */
 
 /**
  * @brief Saves the given text to a file

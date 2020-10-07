@@ -10,12 +10,17 @@
 #include <stdbool.h>
 #include <locale.h>
 
-#include <iup/iup.h>
+#include "../../include/iup/iup.h"
 
 #include "../utils.h"
 #include "../mcs.h"
+#include "../about.h"
+#include "../trace_log.h"
 
 #include "as_parse.h"
+
+#define PROGRAM_NAME "AS2010-GUI"
+#define PROGRAM_DESCRIPTION "CS2010 assembler (GUI version)"
 
 static char *actual_source_filepath = { 0 };
 static char *actual_export_filepath = { 0 };
@@ -63,7 +68,7 @@ static void mark_actual_source(Ihandle *window, char const *filepath) {
 	if (!actual_source_filepath) return;
 	strcpy(actual_source_filepath, filepath);
 
-	IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), AS_PARSER_NAME);
+	IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PROGRAM_NAME);
 }
 
 /**
@@ -87,7 +92,7 @@ static void mark_actual_export(char const *filepath, int export_format) {
  * @brief Forgets about source and export files.
  *        Next time user will be asked again for
  *        those files
- * @param window
+ * @param window Pointer to the window handler
 */
 static void clear_actual(Ihandle *window) {
 	if (actual_source_filepath) free(actual_source_filepath);
@@ -96,7 +101,7 @@ static void clear_actual(Ihandle *window) {
 	actual_export_filepath = 0;
 	actual_export_format = 0;
 
-	IupSetAttribute(window, "TITLE", AS_PARSER_NAME);
+	IupSetAttribute(window, "TITLE", PROGRAM_NAME);
 }
 
 /**
@@ -146,10 +151,10 @@ static void trace(Ihandle *multitext, char const *str) {
  *        assembler result
  * @param window Pointer to the window handler
  * @param pinfo Pointer to the as_parse_info structure
- * @return PARSE_OK if assembly was successful,
- *          PARSE_ERROR otherwise
+ * @return AS_PARSE_OK if assembly was successful,
+ *          AS_PARSE_ERROR otherwise
 */
-static as_parse_status parse_source(Ihandle *window, as_parse_info *pinfo) {
+static int parse_source(Ihandle *window, as_parse_info *pinfo) {
 	Ihandle *source_multitext = IupGetDialogChild(window, "SOURCE_MULTITEXT");
 	Ihandle *status_multitext = IupGetChild(IupGetDialogChild(window, "STATUS_VBOX"), 0);
 	IupSetAttribute(status_multitext, "VALUE", "");
@@ -157,25 +162,25 @@ static as_parse_status parse_source(Ihandle *window, as_parse_info *pinfo) {
 	char buf[AS_MAX_LINE_LENGTH + 2];
 	size_t offset = 0;
 
-	as_parse_status status;
+	int status;
 	while (read_upper_line(buf, AS_MAX_LINE_LENGTH + 2, str, &offset)) {
 		status = as_parse_line(pinfo, buf);
-		trace(status_multitext, pinfo->trace_buffer);
-		if (status == PARSE_ERROR) {
+		trace(status_multitext, trace_log_get(&pinfo->log));
+		if (status == AS_PARSE_ERROR) {
 			trace(status_multitext, "Aborting assembly...\n");
-			return PARSE_ERROR;
+			return AS_PARSE_ERROR;
 		}
 	}
 
 	status = as_parse_assemble(pinfo);
-	trace(status_multitext, pinfo->trace_buffer);
-	if (status == PARSE_ERROR) {
+	trace(status_multitext, trace_log_get(&pinfo->log));
+	if (status == AS_PARSE_ERROR) {
 		trace(status_multitext, "Aborting assembly...\n");
-		return PARSE_ERROR;
+		return AS_PARSE_ERROR;
 	}
 
 	trace(status_multitext, "Successfully assembled!\n");
-	return PARSE_OK;
+	return AS_PARSE_OK;
 }
 
 /**
@@ -190,7 +195,7 @@ static void export_file(Ihandle *window) {
 		return;
 	}
 
-	if (parse_source(window, &pinfo) == PARSE_OK) {
+	if (parse_source(window, &pinfo) == AS_PARSE_OK) {
 		switch (mcs_export_file(actual_export_filepath, pinfo.machine_code, pinfo.sentence_index, actual_export_format)) {
 		case MCS_EXPORT_FILE_ERROR:
 			IupMessagef("Error", "Couldn't open file '%s'\n", actual_export_filepath);
@@ -205,13 +210,6 @@ static void export_file(Ihandle *window) {
 	}
 	as_parse_free(&pinfo);
 	return;
-}
-
-static int on_exit_cb(Ihandle *self) {
-	if (!save_check(self)) {
-		return IUP_IGNORE;
-	}
-	return IUP_CLOSE;
 }
 
 static int new_item_cb(Ihandle *self) {
@@ -286,12 +284,20 @@ static int save_item_cb(Ihandle *self) {
 	Ihandle *main_window = IupGetDialog(self);
 	if (actual_source_filepath) {
 		save_file(actual_source_filepath, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"));
-		IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), AS_PARSER_NAME);
+		IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PROGRAM_NAME);
 		dirty = false;
 	} else {
 		saveas_item_cb(self);
 	}
 	return IUP_IGNORE;
+}
+
+static int exit_cb(Ihandle *self) {
+	if (!save_check(self)) {
+		return IUP_IGNORE;
+	}
+	clear_actual(IupGetDialog(self));
+	return IUP_CLOSE;
 }
 
 static int assemble_item_cb(Ihandle *self) {
@@ -330,16 +336,16 @@ static int exportas_item_cb(Ihandle *self) {
 	IupSetAttribute(dlg, "DIALOGTYPE", "SAVE");
 	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
 	if (option == MCS_FORMAT_BIN) {
-		IupSetAttribute(dlg, "EXTFILTER", "Binary files|*.bin|");
+		IupSetAttribute(dlg, "EXTFILTER", "Binary files|*" MCS_FILE_BIN_EXT "|");
 		IupSetAttribute(dlg, "EXTDEFAULT", "bin");
 	} else {
-		IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*.hex|");
+		IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*." MCS_FILE_HEX_EXT "|");
 		IupSetAttribute(dlg, "EXTDEFAULT", "hex");
 	}
 	if (actual_export_filepath && option == actual_export_format) {
 		IupSetAttribute(dlg, "FILE", actual_export_filepath);
 	} else if (actual_source_filepath) {
-		possible_file = change_path_extension(actual_source_filepath, (option == MCS_FORMAT_BIN) ? ".bin" : ".hex");
+		possible_file = change_path_extension(actual_source_filepath, (option == MCS_FORMAT_BIN) ? MCS_FILE_BIN_EXT : MCS_FILE_HEX_EXT);
 		if (possible_file) {
 			IupSetStrAttribute(dlg, "FILE", possible_file);
 			free(possible_file);
@@ -371,11 +377,18 @@ static int export_item_cb(Ihandle *self) {
 	return IUP_DEFAULT;
 }
 
-static int source_multitext_valuechanged_cb(Ihandle *self) {
-	if (!dirty && actual_source_filepath) {
-		IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_filepath), AS_PARSER_NAME);
-	}
-	dirty = true;
+static int about_item_cb(Ihandle *self) {
+	Ihandle *about_window = IupMessageDlg();
+	IupSetAttribute(about_window, "BUTTONS", "OK");
+	IupSetAttribute(about_window, "DIALOGTYPE", "INFORMATION");
+	IupSetAttribute(about_window, "TITLE", "About");
+	IupSetStrf(about_window, "VALUE",
+		MAKE_ABOUT_TEXT(
+			PROGRAM_NAME,
+			PROGRAM_DESCRIPTION
+		)
+	);
+	IupPopup(about_window, IUP_CENTER, IUP_CENTER);
 	return IUP_DEFAULT;
 }
 
@@ -390,32 +403,25 @@ static int dropfiles_cb(Ihandle *self, const char *filepath, int num, int x, int
 	return IUP_DEFAULT;
 }
 
-static int about_item_cb(Ihandle *self) {
-	Ihandle *about_window = IupMessageDlg();
-	IupSetAttribute(about_window, "BUTTONS", "OK");
-	IupSetAttribute(about_window, "DIALOGTYPE", "INFORMATION");
-	IupSetAttribute(about_window, "TITLE", "About");
-	IupSetStrf(about_window, "VALUE",
-		"AS2010-gui v" STRINGIFY(AS_PARSER_MAJOR_VERSION) "." STRINGIFY(AS_PARSER_MINOR_VERSION) "." STRINGIFY(AS_PARSER_PATCH_VERSION) " - CS2010 assembler\n"
-		"Developed by GuilleX7 - guillermox7@gmail.com\n"
-		"https://github.com/GuilleX7/\n");
-	IupPopup(about_window, IUP_CENTER, IUP_CENTER);
+static int source_multitext_valuechanged_cb(Ihandle *self) {
+	if (!dirty && actual_source_filepath) {
+		IupSetStrf(IupGetDialog(self), "TITLE", "%s* - %s", get_file_name(actual_source_filepath), PROGRAM_NAME);
+	}
+	dirty = true;
 	return IUP_DEFAULT;
 }
 
-/* Main function */
-
 int main(int argc, char **argv) {
 	/* Main window */
-	Ihandle *main_window, *main_vbox;
+	Ihandle *main_window;
 	/* Menu */
 	Ihandle *menu;
 	/* File menu */
-	Ihandle *file_menu, *file_submenu, *new_item, *open_item, *save_item, *saveas_item, *exit_item;
+	Ihandle *file_submenu, *new_item, *open_item, *save_item, *saveas_item, *exit_item;
 	/* Assembler menu */
-	Ihandle *assembler_menu, *assembler_submenu, *assemble_item, *export_item, *exportas_item;
+	Ihandle *assembler_submenu, *assemble_item, *export_item, *exportas_item;
 	/* About menu */
-	Ihandle *about_menu, *about_submenu, *about_item;
+	Ihandle *about_submenu, *about_item;
 	/* Source tab */
 	Ihandle *source_multitext, *source_vbox, *status_multitext, *status_vbox, *split;
 	/* Tabs */
@@ -425,145 +431,124 @@ int main(int argc, char **argv) {
 		puts("Error while opening GUI, aborting execution...\n");
 		return EXIT_FAILURE;
 	}
-	IupSetGlobal("UTF8MODE", "YES");
+	IupSetGlobal("UTF8MODE", IUP_YES);
 	setlocale(LC_ALL, "");
 
-	new_item = IupItem("New\tCTRL+N", NULL);
-	IupSetAttribute(new_item, "NAME", "NEW_ITEM");
-	IupSetCallback(new_item, "ACTION", (Icallback) new_item_cb);
-	open_item = IupItem("Open\tCTRL+O", NULL);
-	IupSetAttribute(open_item, "NAME", "OPEN_ITEM");
-	IupSetCallback(open_item, "ACTION", (Icallback) open_item_cb);
-	save_item = IupItem("Save\tCTRL+S", NULL);
-	IupSetAttribute(save_item, "NAME", "SAVE_ITEM");
-	IupSetCallback(save_item, "ACTION", (Icallback) save_item_cb);
-	saveas_item = IupItem("Save as...", NULL);
-	IupSetAttribute(saveas_item, "NAME", "SAVEAS_ITEM");
-	IupSetCallback(saveas_item, "ACTION", (Icallback) saveas_item_cb);
-	exit_item = IupItem("Exit\tCTRL+Q", NULL);
-	IupSetAttribute(exit_item, "NAME", "EXIT_ITEM");
-	IupSetCallback(exit_item, "ACTION", (Icallback) on_exit_cb);
-	file_menu = IupMenu(
-		new_item,
-		open_item,
-		save_item,
-		saveas_item,
-		IupSeparator(),
-		exit_item,
-		NULL
+	new_item = IupItem("New\tCTRL+N", 0);
+	IupSetCallback(new_item, IUP_ACTION, (Icallback) new_item_cb);
+	open_item = IupItem("Open\tCTRL+O", 0);
+	IupSetCallback(open_item, IUP_ACTION, (Icallback) open_item_cb);
+	save_item = IupItem("Save\tCTRL+S", 0);
+	IupSetCallback(save_item, IUP_ACTION, (Icallback) save_item_cb);
+	saveas_item = IupItem("Save as...", 0);
+	IupSetCallback(saveas_item, IUP_ACTION, (Icallback) saveas_item_cb);
+	exit_item = IupItem("Exit\tCTRL+Q", 0);
+	IupSetCallback(exit_item, IUP_ACTION, (Icallback) exit_cb);
+	file_submenu = IupSubmenu("File",
+		IupMenu(
+			new_item,
+			open_item,
+			save_item,
+			saveas_item,
+			IupSeparator(),
+			exit_item,
+			0
+		)
 	);
-	file_submenu = IupSubmenu("File", file_menu);
-	IupSetAttribute(file_submenu, "NAME", "FILE_SUBMENU");
 
-	assemble_item = IupItem("Assemble source\tCTRL+I", NULL);
-	IupSetAttribute(assemble_item, "NAME", "ASSEMBLE_ITEM");
-	IupSetCallback(assemble_item, "ACTION", (Icallback) assemble_item_cb);
-	export_item = IupItem("Assemble source and export", NULL);
-	IupSetAttribute(export_item, "NAME", "EXPORT_ITEM");
-	IupSetCallback(export_item, "ACTION", (Icallback) export_item_cb);
-	exportas_item = IupItem("Assemble source and export as...", NULL);
-	IupSetAttribute(exportas_item, "NAME", "EXPORTAS_ITEM");
-	IupSetCallback(exportas_item, "ACTION", (Icallback) exportas_item_cb);
-	assembler_menu = IupMenu(
-		assemble_item,
-		export_item,
-		exportas_item,
-		NULL
+	assemble_item = IupItem("Assemble source\tCTRL+I", 0);
+	IupSetCallback(assemble_item, IUP_ACTION, (Icallback) assemble_item_cb);
+	export_item = IupItem("Assemble source and export", 0);
+	IupSetCallback(export_item, IUP_ACTION, (Icallback) export_item_cb);
+	exportas_item = IupItem("Assemble source and export as...", 0);
+	IupSetCallback(exportas_item, IUP_ACTION, (Icallback) exportas_item_cb);
+	assembler_submenu = IupSubmenu("Assembler",
+		IupMenu(
+			assemble_item,
+			export_item,
+			exportas_item,
+			0
+		)
 	);
-	IupSetAttribute(assembler_menu, "NAME", "ASSEMBLER_MENU");
-	assembler_submenu = IupSubmenu("Assembler", assembler_menu);
-	IupSetAttribute(assembler_submenu, "NAME", "ASSEMBLER_SUBMENU");
 
-	about_item = IupItem("About...", NULL);
-	IupSetAttribute(about_item, "NAME", "ABOUT_ITEM");
-	IupSetCallback(about_item, "ACTION", (Icallback) about_item_cb);
-	about_menu = IupMenu(
-		about_item,
-		NULL
+	about_item = IupItem("About...", 0);
+	IupSetCallback(about_item, IUP_ACTION, (Icallback) about_item_cb);
+	about_submenu = IupSubmenu("About",
+		IupMenu(
+			about_item,
+			0
+		)
 	);
-	IupSetAttribute(about_menu, "NAME", "ABOUT_MENU");
-	about_submenu = IupSubmenu("About", about_menu);
-	IupSetAttribute(about_submenu, "NAME", "ABOUT_ITEM");
 
 	menu = IupMenu(
 		file_submenu,
 		assembler_submenu,
 		about_submenu,
-		NULL
+		0
 	);
-	IupSetAttribute(menu, "NAME", "MENU");
 
-	source_multitext = IupText(NULL);
+	source_multitext = IupText(0);
 	IupSetAttribute(source_multitext, "NAME", "SOURCE_MULTITEXT");
-	IupSetAttribute(source_multitext, "FONT", "Courier 11");
-	IupSetAttribute(source_multitext, "MULTILINE", "YES");
+	IupSetAttribute(source_multitext, IUP_FONT, "Courier 11");
+	IupSetAttribute(source_multitext, "MULTILINE", IUP_YES);
 	IupSetInt(source_multitext, "TABSIZE", 4);
-	IupSetAttribute(source_multitext, "EXPAND", "YES");
+	IupSetAttribute(source_multitext, IUP_EXPAND, IUP_YES);
 	IupSetCallback(source_multitext, "VALUECHANGED_CB", (Icallback) source_multitext_valuechanged_cb);
 
 	source_vbox = IupVbox(
 		source_multitext,
-		NULL
+		0
 	);
-	IupSetAttribute(source_vbox, "NAME", "SOURCE_VBOX");
-	IupSetInt(source_vbox, "GAP", 4);
+	IupSetInt(source_vbox, IUP_GAP, 4);
 
-	status_multitext = IupText(NULL);
+	status_multitext = IupText(0);
 	IupSetAttribute(status_multitext, "NAME", "STATUS_MULTITEXT");
-	IupSetAttribute(status_multitext, "MULTILINE", "YES");
-	IupSetAttribute(status_multitext, "EXPAND", "YES");
-	IupSetAttribute(status_multitext, "READONLY", "YES");
+	IupSetAttribute(status_multitext, "MULTILINE", IUP_YES);
+	IupSetAttribute(status_multitext, "EXPAND", IUP_YES);
+	IupSetAttribute(status_multitext, IUP_READONLY, IUP_YES);
 
 	status_vbox = IupVbox(
 		status_multitext,
-		NULL
+		0
 	);
 	IupSetAttribute(status_vbox, "NAME", "STATUS_VBOX");
-	IupSetInt(status_vbox, "GAP", 4);
+	IupSetInt(status_vbox, IUP_GAP, 4);
 
 	tabs = IupTabs(
 		status_vbox,
-		NULL
+		0
 	);
-	IupSetAttribute(tabs, "NAME", "TABS");
 	IupSetAttribute(tabs, "TABTITLE0", "Output");
 
 	split = IupSplit(
 		source_vbox,
 		tabs
 	);
-	IupSetAttribute(split, "NAME", "SPLIT");
-	IupSetAttribute(split, "ORIENTATION", "HORIZONTAL");
-	IupSetInt(split, "VALUE", 700);
+	IupSetAttribute(split, IUP_ORIENTATION, IUP_HORIZONTAL);
+	IupSetInt(split, IUP_VALUE, 700);
 	IupSetAttribute(IupGetChild(split, 0), "STYLE", "EMPTY");
 
-	main_vbox = IupVbox(
-		split,
-		NULL
+	main_window = IupDialog(
+		IupVbox(
+			split,
+			0
+		)
 	);
-	IupSetAttribute(main_vbox, "NAME", "MAIN_VBOX");
-
-	main_window = IupDialog(main_vbox);
-	IupSetAttribute(main_window, "NAME", "MAIN_WINDOW");
-	IupSetAttributeHandle(main_window, "MENU", menu);
-	IupSetAttribute(main_window, "SIZE", "QUARTERxHALF");
-
+	IupSetAttributeHandle(main_window, IUP_MENU, menu);
+	IupSetAttribute(main_window, IUP_SIZE, IUP_QUARTER "x" IUP_HALF);
 	IupSetCallback(main_window, "K_cN", (Icallback) new_item_cb);
 	IupSetCallback(main_window, "K_cO", (Icallback) open_item_cb);
 	IupSetCallback(main_window, "K_cS", (Icallback) save_item_cb);
-	IupSetCallback(main_window, "K_cQ", (Icallback) on_exit_cb);
+	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
 	IupSetCallback(main_window, "K_cI", (Icallback) assemble_item_cb);
-	IupSetCallback(main_window, "DROPFILES_CB", (Icallback) dropfiles_cb);
-
-	IupSetCallback(main_window, "CLOSE_CB", (Icallback) on_exit_cb);
-
+	IupSetCallback(main_window, IUP_DROPFILES_CB, (Icallback) dropfiles_cb);
+	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
+	
 	new_item_cb(main_window);
 
 	IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
-	IupSetAttribute(main_window, "SIZE", NULL);
-
+	IupSetAttribute(main_window, IUP_SIZE, 0);
 	IupMainLoop();
-
 	IupClose();
 	return EXIT_SUCCESS;
 }

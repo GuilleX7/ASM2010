@@ -8,6 +8,12 @@
 
 #include "../hash_table.h"
 
+#define CS_INS_FORMAT_A 0
+#define CS_INS_FORMAT_B 1
+#define CS_INS_FORMAT_C 2
+#define CS_INS_FORMAT_D 3
+#define CS_INS_FORMAT_E 4
+
 #define CS_INS_NAME_MAX_LENGTH 4
 
 #define CS_JMP_COND_EQUAL 0
@@ -17,6 +23,9 @@
 
 #define CS_GET_OPCODE(sentence) ((sentence & 0xF800u) >> 11)
 #define CS_GET_JMP_CONDITION(sentence) ((sentence & 0x700u) >> 8)
+#define CS_GET_ARG_A(sentence) CS_GET_JMP_CONDITION(sentence)
+#define CS_GET_ARG_B(sentence) (sentence & 0xFFu)
+#define CS_GET_RAW_SENTENCE(lsbyte, msbyte) (((uint16_t) msbyte << 8) + (uint16_t) lsbyte)
 
 /** @brief List of instructions' indexes */
 enum cs_instruction_idx {
@@ -53,18 +62,12 @@ enum cs_instruction_idx {
 };
 typedef enum cs_instruction_idx cs_instruction_idx;
 
-/** @brief List of instructions' formats */
-enum cs_instruction_format {
-	CS_INS_FORMAT_A, CS_INS_FORMAT_B, CS_INS_FORMAT_C, CS_INS_FORMAT_D, CS_INS_FORMAT_E
-};
-typedef enum cs_instruction_format cs_instruction_format;
-
 /** @brief CS2010 instruction data */
 struct cs_instruction {
 	cs_instruction_idx index;
 	char *name;
 	uint8_t opcode;
-	cs_instruction_format format;
+	uint8_t format;
 	uint8_t jmp_condition;
 };
 typedef struct cs_instruction cs_instruction;

@@ -3,11 +3,6 @@
 #ifndef AS_PARSE_H
 #define AS_PARSE_H
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif /* _MSC_VER */
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -19,20 +14,26 @@
 #include "../cs2010/cs_memory.h"
 
 #include "../hash_table.h"
+#include "../trace_log.h"
 
 #define AS_MAX_SOURCE_LINES 65535
 #define AS_MAX_LINE_LENGTH 256
-#define AS_MAX_TRACE_LENGTH 512
-#define AS_MAX_EQU_LENGTH 64
+#define AS_MAX_TRACE_LENGTH 256
+#define AS_MAX_LOG_LENGTH (AS_MAX_TRACE_LENGTH * 4)
+#define AS_MAX_EQU_LENGTH 64	
+
+/* The longest line, so 16 bytes is enough
+	1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
+	O  O  O  O     0  x  F  F  ,     0  X  F  F /0 */
+#define AS_MAX_DISASSEMBLY_LENGTH 16
 
 #define AS_ARGUMENT_TYPE_INM 0
 #define AS_ARGUMENT_TYPE_EQU 1
 #define AS_ARGUMENT_TYPE_INVALID 2
 
-#define AS_PARSER_NAME "AS2010"
-#define AS_PARSER_MAJOR_VERSION 0
-#define AS_PARSER_MINOR_VERSION 2
-#define AS_PARSER_PATCH_VERSION 0
+#define AS_PARSE_OK 0
+#define AS_PARSE_WARNING 1
+#define AS_PARSE_ERROR 2
 
 struct as_parse_argument {
 	union {
@@ -44,7 +45,7 @@ struct as_parse_argument {
 typedef struct as_parse_argument as_parse_argument;
 
 struct as_parse_sentence {
-	cs_instruction const *cs_instruction;
+	cs_instruction const *instruction;
 	as_parse_argument arg_a;
 	as_parse_argument arg_b;
 };
@@ -61,10 +62,8 @@ struct as_parse_info {
 	size_t sentence_index;
 	/** @brief Hash table containig all equ replacements */
 	hash_table equs_ht;
-	/** @brief Trace buffer */
-	char *trace_buffer;
-	/** @brief Trace string */
-	char *trace;
+	/** @brief Trace log for the assembly proccess */
+	trace_log log;
 	/** @brief Array containing all valid parsed sentences */
 	as_parse_sentence sentences[CS_ROM_SIZE];
 	/** @brief Array containing assembled machine code */
@@ -72,46 +71,50 @@ struct as_parse_info {
 };
 typedef struct as_parse_info as_parse_info;
 
-enum as_parse_status {
-	PARSE_OK, PARSE_WARNING, PARSE_ERROR
-};
-typedef enum as_parse_status as_parse_status;
-
 /**
-	@brief Initiliazes a as_parse_info struct
-	@param pinfo Pointer to as_parse_info struct to be initialized
-	@param traceout Pointer to tracing function
-	@return true if success, false otherwise
+ * @brief Initializes a parse struct
+ * @param pinfo Pointer to as_parse_info struct to be initialized
+ * @return true if success, false otherwise
 */
 bool as_parse_init(as_parse_info *pinfo);
 
 /**
-	@brief Parses one line of the assembly code.
-	This function must be called for every line of the assembly
-	before calling parse_assemble.
-	@param pinfo Pointer to as_parse_info struct that keeps track of
-				parsing proccess
-	@param line Pointer to the line string
-	@return PARSE_OK if line was analysed successfully,
-			PARSE_WARNING if line was ignored or
-			PARSE_ERROR if analysis should be aborted
+ * @brief Parses one line of CS2010 assembly code.
+ *		This function must be called for every line of the assembly
+ *		in order before calling parse_assemble.
+ * @param pinfo Pointer to the parse struct that keeps track of
+ *				parsing proccess
+ * @param line Pointer to the line string containing the assembler
+ * @return AS_PARSE_OK if line was parsed successfully,
+ *			AS_PARSE_WARNING if line was ignored or
+ *			AS_PARSE_ERROR if parsing should be aborted
 */
-as_parse_status as_parse_line(as_parse_info *pinfo, char const *line);
+int as_parse_line(as_parse_info *pinfo, char const *line);
 
 /**
-	@brief Assembles the parsed lines of the assembly code into
-		  binary machine code.
-	@param pinfo Pointer to as_parse_info struct that keeps track of
-				parsing proccess
-	@return PARSE_OK if machine code was assembled successfully,
-			PARSE_ERROR otherwise
+ * @brief Assembles the parse struct (it contains the previously
+		parsed assembly lines) into binary machine code.
+ * @param pinfo Pointer to as_parse_info struct that keeps tract of
+ *		parsing proccess
+ * @return AS_PARSE_OK if machine code was assembled successfully,
+ *			AS_PARSE_ERROR otherwise
 */
-as_parse_status as_parse_assemble(as_parse_info *pinfo);
+int as_parse_assemble(as_parse_info *pinfo);
 
 /**
-	@brief Frees as_parse_info associated memory
-	@param pinfo Pointer to as_parse_info structure
+ * @brief Frees as_parse_info struct and associated memory
+ * @param pinfo Pointer to as_parse_info structure
 */
 void as_parse_free(as_parse_info *pinfo);
+
+/**
+ * @brief Disassembles a given raw, binary sentence of CS2010 machine
+ *		code into human-readable CS2010 assembler. The returned string
+ *		must be freed by the caller.
+ * @param raw_sentence Binary CS2010 machine code sentence
+ * @return Pointer to string containing the dissasembly if success,
+ *		a null pointer otherwise (invalid binary code)
+*/
+char *as_disassemble_sentence(uint16_t raw_sentence);
 
 #endif /* AS_PARSE_H */
