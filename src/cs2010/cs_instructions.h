@@ -14,6 +14,8 @@
 #define CS_INS_FORMAT_D 3
 #define CS_INS_FORMAT_E 4
 
+#define CS_INS_INM_MAX_VALUE 255
+
 #define CS_INS_NAME_MAX_LENGTH 4
 
 #define CS_JMP_COND_EQUAL 0
@@ -68,11 +70,10 @@ struct cs_instruction {
 	char *name;
 	uint8_t opcode;
 	uint8_t format;
-	uint8_t jmp_condition;
 };
 typedef struct cs_instruction cs_instruction;
 
-/** @brief Name and opcodes for each instruction */
+/** @brief Name and opcode for each instruction */
 cs_instruction const CS_INS_LIST[CS_INS_LEN];
 
 /**

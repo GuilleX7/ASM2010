@@ -190,7 +190,7 @@ static int parse_source(Ihandle *window, as_parse_info *pinfo) {
 static void export_file(Ihandle *window) {
 	Ihandle *status_multitext = IupGetChild(IupGetDialogChild(window, "STATUS_VBOX"), 0);
 	as_parse_info pinfo = { 0 };
-	if (!as_parse_init(&pinfo)) {
+	if (!as_parse_init(&pinfo, CS_ROM_SIZE)) {
 		trace(status_multitext, "[Error] couldn't initialize assembly due to memory exhaustion\n");
 		return;
 	}
@@ -304,7 +304,7 @@ static int assemble_item_cb(Ihandle *self) {
 	Ihandle *main_window = IupGetDialog(self);
 	Ihandle *status_multitext = IupGetChild(IupGetDialogChild(main_window, "STATUS_VBOX"), 0);
 	as_parse_info pinfo = { 0 };
-	if (!as_parse_init(&pinfo)) {
+	if (!as_parse_init(&pinfo, CS_ROM_SIZE)) {
 		trace(status_multitext, "[Error] couldn't initialize assembly due to memory exhaustion\n");
 		return IUP_IGNORE;
 	}

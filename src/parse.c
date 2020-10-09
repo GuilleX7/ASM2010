@@ -82,7 +82,6 @@ size_t retrieve_value(char const **lineptr, int *status, size_t max_value, int s
     return value;
 }
 
-
 size_t retrieve_value_hexadecimal(char const **lineptr, int *status, size_t max_value) {
     size_t value = { 0 };
     unsigned char ch_value = 0;

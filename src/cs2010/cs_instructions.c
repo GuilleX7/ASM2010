@@ -1,4 +1,4 @@
-/** @file cs_instructions */
+/** @file cs_instructions.c */
 
 #include "cs_instructions.h"
 

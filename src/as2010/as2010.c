@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	if (!as_parse_init(&pinfo)) {
+	if (!as_parse_init(&pinfo, CS_ROM_SIZE)) {
 		printf("Error: couldn't initialize assembly due to memory exhaustion\n");
 		return EXIT_FAILURE;
 	}

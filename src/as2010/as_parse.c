@@ -6,9 +6,6 @@
 
 #include "as_parse.h"
 
-#include "../utils.h"
-#include "../parse.h"
-
 #define EQU_KEYWORD ".EQU "
 #define EQU_KEYWORD_LENGTH strlen(EQU_KEYWORD)
 #define EQU_LINE_MARK ':'
@@ -121,7 +118,7 @@ static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
     }
 
     int status;
-    uint8_t value = retrieve_value(lineptr, &status, CS_MAX_INM_VALUE, search_line_end);
+    uint8_t value = retrieve_value(lineptr, &status, CS_INS_INM_MAX_VALUE, search_line_end);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
         trace("[Error] invalid value specified for equ identifier '%s' at line %" PRI_SIZET "\n", identifier, pinfo->parsing_line_index);
@@ -161,7 +158,7 @@ static uint8_t search_opcode(as_parse_info *pinfo, char const **lineptr) {
     (*lineptr) += OPCODE_KEYWORD_LENGTH;
 
     int status = { 0 };
-    as_parse_argument msbyte = retrieve_inm(lineptr, &status, CS_MAX_INM_VALUE);
+    as_parse_argument msbyte = retrieve_inm(lineptr, &status, CS_INS_INM_MAX_VALUE);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
         trace("[Error] invalid value specified as MSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
@@ -178,7 +175,7 @@ static uint8_t search_opcode(as_parse_info *pinfo, char const **lineptr) {
         return PARSE_LINE_ERROR;
     }
 
-    as_parse_argument lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_MAX_INM_VALUE);
+    as_parse_argument lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
         trace("[Error] invalid value specified as LSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
@@ -195,8 +192,8 @@ static uint8_t search_opcode(as_parse_info *pinfo, char const **lineptr) {
         return PARSE_LINE_ERROR;
     }
 
-    if (pinfo->sentence_index + 1 >= CS_ROM_SIZE) {
-        trace("[Error] maximum sentence lines reached (%u)\n", CS_ROM_SIZE);
+    if (pinfo->sentence_index + 1 >= pinfo->max_sentences) {
+        trace("[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
         return PARSE_LINE_ERROR;
     }
 
@@ -288,8 +285,8 @@ static as_parse_argument search_register(char const **lineptr, bool allow_indire
 
     if (**lineptr == REG_MARK) {
         (*lineptr)++;
-        register_number = retrieve_value_decimal(lineptr, &status, CS_REGISTER_MAX);
-        if (status == RETRIEVE_VALUE_OK && register_number >= CS_REGISTER_MIN) {
+        register_number = retrieve_value_decimal(lineptr, &status, CS_REGISTERS_RMAX);
+        if (status == RETRIEVE_VALUE_OK && register_number >= CS_REGISTERS_RMIN) {
             register_argument.type = AS_ARGUMENT_TYPE_INM;
             register_argument.value.inm = register_number;
         }
@@ -366,7 +363,7 @@ static int parse_instruction_fb(as_parse_info *pinfo, char const **lineptr) {
 
     if (sentence->instruction->index == CS_INS_I_STS) {
         int status = { 0 };
-        *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_MAX_INM_VALUE);
+        *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
         if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
             trace("[Error] invalid value/address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
@@ -392,7 +389,7 @@ static int parse_instruction_fb(as_parse_info *pinfo, char const **lineptr) {
         }
     } else {
         int status = { 0 };
-        *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_MAX_INM_VALUE);
+        *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
         if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
             trace("[Error] invalid value/address as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
@@ -418,7 +415,7 @@ static int parse_instruction_fc(as_parse_info *pinfo, char const **lineptr) {
     jump_condition->value.inm = cs_ins_get_jmp_condition(sentence->instruction);
 
     int status = { 0 };
-    *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_MAX_INM_VALUE);
+    *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
     if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
         trace("[Error] invalid address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
@@ -523,17 +520,15 @@ static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
         return PARSE_LINE_ERROR;
     }
 
-    if (pinfo->sentence_index + 1 >= CS_ROM_SIZE) {
-        trace("[Error] maximum sentence lines reached (%u)\n", CS_ROM_SIZE);
+    if (pinfo->sentence_index + 1 >= pinfo->max_sentences) {
+        trace("[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
         return PARSE_LINE_ERROR;
     }
     pinfo->sentence_index++;
     return PARSE_LINE_END;
 }
 
-bool as_parse_init(as_parse_info *pinfo) {
-    pinfo->parsing_line_index = 0;
-    pinfo->sentence_index = 0;
+bool as_parse_init(as_parse_info *pinfo, size_t max_sentences) {
     if (!hash_table_init(&pinfo->equs_ht)) {
         return false;
     }
@@ -549,6 +544,24 @@ bool as_parse_init(as_parse_info *pinfo) {
         return false;
     }
 
+    pinfo->sentences = malloc(sizeof *pinfo->sentences * max_sentences);
+    if (!pinfo->sentences) {
+        hash_table_free(&pinfo->equs_ht);
+        trace_log_free(&pinfo->log);
+        cs_ins_search_stop();
+    }
+
+    pinfo->machine_code = malloc(sizeof *pinfo->machine_code * max_sentences);
+    if (!pinfo->sentences) {
+        hash_table_free(&pinfo->equs_ht);
+        trace_log_free(&pinfo->log);
+        cs_ins_search_stop();
+        free(pinfo->sentences);
+    }
+
+    pinfo->parsing_line_index = 0;
+    pinfo->sentence_index = 0;
+    pinfo->max_sentences = max_sentences;
     return true;
 }
 
@@ -560,6 +573,8 @@ void as_parse_free(as_parse_info *pinfo) {
     }
     trace_log_free(&pinfo->log);
     cs_ins_search_stop();
+    free(pinfo->sentences);
+    free(pinfo->machine_code);
 }
 
 int as_parse_line(as_parse_info *pinfo, char const *line) {
@@ -695,7 +710,7 @@ char *as_disassemble_sentence(uint16_t raw_sentence) {
     
     switch (instruction->format) {
     case CS_INS_FORMAT_A:
-        if (arg_b < CS_REGISTER_MIN || arg_b > CS_REGISTER_MAX) {
+        if (arg_b < CS_REGISTERS_RMIN || arg_b > CS_REGISTERS_RMAX) {
             valid = false;
             break;
         }

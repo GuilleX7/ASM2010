@@ -11,10 +11,13 @@
 #include <inttypes.h>
 
 #include "../cs2010/cs_instructions.h"
+#include "../cs2010/cs_registers.h"
 #include "../cs2010/cs_memory.h"
 
 #include "../hash_table.h"
 #include "../trace_log.h"
+#include "../utils.h"
+#include "../parse.h"
 
 #define AS_MAX_SOURCE_LINES 65535
 #define AS_MAX_LINE_LENGTH 256
@@ -56,18 +59,20 @@ typedef struct as_parse_sentence as_parse_sentence;
 	a CS2010 program after parsing the assembly code
 */
 struct as_parse_info {
-	/** @brief Index of current parsing line */
-	size_t parsing_line_index;
-	/** @brief Index of current sentence */
-	size_t sentence_index;
 	/** @brief Hash table containig all equ replacements */
 	hash_table equs_ht;
 	/** @brief Trace log for the assembly proccess */
 	trace_log log;
+	/** @brief Index of current parsing line */
+	size_t parsing_line_index;
+	/** @brief Index of current sentence */
+	size_t sentence_index;
+	/** @brief Maximum amount of sentences */
+	size_t max_sentences;
 	/** @brief Array containing all valid parsed sentences */
-	as_parse_sentence sentences[CS_ROM_SIZE];
+	as_parse_sentence *sentences;
 	/** @brief Array containing assembled machine code */
-	uint16_t machine_code[CS_ROM_SIZE];
+	uint16_t *machine_code;
 };
 typedef struct as_parse_info as_parse_info;
 
@@ -76,7 +81,7 @@ typedef struct as_parse_info as_parse_info;
  * @param pinfo Pointer to as_parse_info struct to be initialized
  * @return true if success, false otherwise
 */
-bool as_parse_init(as_parse_info *pinfo);
+bool as_parse_init(as_parse_info *pinfo, size_t max_sentences);
 
 /**
  * @brief Parses one line of CS2010 assembly code.
