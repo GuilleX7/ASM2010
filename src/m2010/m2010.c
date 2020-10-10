@@ -35,9 +35,12 @@ bool open_machine_code_file(char *filepath) {
 			disassembly = as_disassemble_sentence(code[i]);
 			if (!disassembly) {
 				disassembly = "???";
+				m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
+			} else {
+				m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
+				free(disassembly);
 			}
-			m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
-			free(disassembly);
+			
 		}
 		m_comp_romgrid_set_active(&rom_gridbox, 0);
 		free(code);

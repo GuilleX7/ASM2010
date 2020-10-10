@@ -44,6 +44,11 @@ set(CS2010_COMMON_SOURCE
 "src/cs2010/cs_instructions.c"
 "src/cs2010/cs_instructions.h"
 "src/cs2010/cs_memory.h"
+"src/cs2010/cs_op.c"
+"src/cs2010/cs_op.h"
+"src/cs2010/cs_registers.h"
+"src/cs2010/cs2010.c"
+"src/cs2010/cs2010.h"
 )
 set(AS2010_COMMON_SOURCE
 "src/as2010/as_parse.c"
@@ -59,8 +64,6 @@ set(M2010_SOURCE
 "src/m2010/m2010.c"
 "src/m2010/comp/m_romgrid.c"
 "src/m2010/comp/m_romgrid.h"
-"src/m2010/comp/m_logger.h"
-"src/m2010/comp/m_logger.h"
 )
 set(TINYCTHREAD_SOURCE
 "include/tinycthread/tinycthread.c"

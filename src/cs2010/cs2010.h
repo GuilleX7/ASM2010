@@ -9,8 +9,6 @@
 
 #include "cs_memory.h"
 #include "cs_registers.h"
-#include "cs_instructions.h"
-#include "cs_op.h"
 
 #define CS_CLEAR_RAM (1 << 0)
 #define CS_CLEAR_ROM (1 << 1)
@@ -38,7 +36,7 @@ void cs_clear_memory(cs2010 *cs, uint8_t flags);
 
 void cs_reset_registers(cs2010 *cs, bool clear_signals);
 
-bool cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length);
+int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length);
 
 void cs_fetch(cs2010 *cs);
 

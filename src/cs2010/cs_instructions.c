@@ -13,7 +13,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
             CS_SIGNAL_WMEM | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_st_stepper,
+        .microstepper = cs_op_st_microstepper,
     },
     [CS_INS_I_LD] = {
         .index = CS_INS_I_LD,
@@ -25,7 +27,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_ld_stepper,
+        .microstepper = cs_op_ld_microstepper,
     },
     [CS_INS_I_STS] = {
         .index = CS_INS_I_STS,
@@ -37,7 +41,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
             CS_SIGNAL_WMEM | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_sts_stepper,
+        .microstepper = cs_op_sts_microstepper,
     },
     [CS_INS_I_LDS] = {
         .index = CS_INS_I_LDS,
@@ -49,7 +55,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_lds_stepper,
+        .microstepper = cs_op_lds_microstepper,
     },
     [CS_INS_I_CALL] = {
         .index = CS_INS_I_CALL,
@@ -61,7 +69,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_RSP | CS_SIGNAL_DSP | CS_SIGNAL_WMAR,
             CS_SIGNAL_RAC | CS_SIGNAL_WPC | CS_SIGNAL_WMEM,
             CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_call_stepper,
+        .microstepper = cs_op_call_microstepper,
     },
     [CS_INS_I_RET] = {
         .index = CS_INS_I_RET,
@@ -74,7 +84,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WPC | CS_SIGNAL_IOMDR,
             CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_ret_stepper,
+        .microstepper = cs_op_ret_microstepper,
     },
     [CS_INS_I_BRXX] = {
         .index = CS_INS_I_BRXX,
@@ -85,7 +97,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
             CS_SIGNAL_RAC | CS_SIGNAL_WPC,
             CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_brxx_stepper,
+        .microstepper = cs_op_brxx_microstepper,
     },
     [CS_INS_I_JMP] = {
 		.index = CS_INS_I_JMP,
@@ -96,7 +110,9 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
             CS_SIGNAL_RAC | CS_SIGNAL_WPC,
             CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_jmp_stepper,
+        .microstepper = cs_op_jmp_microstepper,
 	},
     [CS_INS_I_ADD] = {
 		.index = CS_INS_I_ADD,
@@ -106,7 +122,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_add_stepper,
+        .microstepper = cs_op_add_microstepper,
 	},
     [CS_INS_I_SUB] = {
 		.index = CS_INS_I_SUB,
@@ -116,7 +134,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_sub_stepper,
+        .microstepper = cs_op_sub_microstepper,
 	},
     [CS_INS_I_CP] = {
 		.index = CS_INS_I_CP,
@@ -125,7 +145,9 @@ cs_instruction const cs_ins_list[] = {
 		.format = CS_INS_FORMAT_A,
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_cp_stepper,
+        .microstepper = cs_op_cp_microstepper,
 	},
     [CS_INS_I_MOV] = {
 		.index = CS_INS_I_MOV,
@@ -135,7 +157,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_mov_stepper,
+        .microstepper = cs_op_mov_microstepper,
 	},
     [CS_INS_I_CLC] = {
 		.index = CS_INS_I_CLC,
@@ -144,7 +168,9 @@ cs_instruction const cs_ins_list[] = {
 		.format = CS_INS_FORMAT_E,
         .signals = {
             CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_clc_stepper,
+        .microstepper = cs_op_clc_microstepper,
 	},
     [CS_INS_I_SEC] = {
 		.index = CS_INS_I_SEC,
@@ -153,7 +179,9 @@ cs_instruction const cs_ins_list[] = {
 		.format = CS_INS_FORMAT_E,
         .signals = {
             CS_SIGNAL_ALUOP1 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_sec_stepper,
+        .microstepper = cs_op_sec_microstepper,
 	},
     [CS_INS_I_ROR] = {
 		.index = CS_INS_I_ROR,
@@ -163,7 +191,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_ror_stepper,
+        .microstepper = cs_op_ror_microstepper,
 	},
     [CS_INS_I_ROL] = {
 		.index = CS_INS_I_ROL,
@@ -173,7 +203,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_rol_stepper,
+        .microstepper = cs_op_rol_microstepper,
 	},
     [CS_INS_I_STOP] = {
 		.index = CS_INS_I_STOP,
@@ -182,7 +214,9 @@ cs_instruction const cs_ins_list[] = {
 		.format = CS_INS_FORMAT_E,
         .signals = {
             CS_SIGNALS_NONE
-        }
+        },
+        .stepper = cs_op_stop_stepper,
+        .microstepper = cs_op_stop_microstepper,
 	},
     [CS_INS_I_ADDI] = {
 		.index = CS_INS_I_ADDI,
@@ -192,7 +226,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_addi_stepper,
+        .microstepper = cs_op_addi_microstepper,
 	},
     [CS_INS_I_SUBI] = {
 		.index = CS_INS_I_SUBI,
@@ -202,7 +238,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_subi_stepper,
+        .microstepper = cs_op_subi_microstepper,
 	},
     [CS_INS_I_CPI] = {
         .index = CS_INS_I_CPI,
@@ -211,7 +249,9 @@ cs_instruction const cs_ins_list[] = {
         .format = CS_INS_FORMAT_B,
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_cpi_stepper,
+        .microstepper = cs_op_cpi_microstepper,
     },
     [CS_INS_I_LDI] = {
         .index = CS_INS_I_LDI,
@@ -221,7 +261,9 @@ cs_instruction const cs_ins_list[] = {
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
             CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        }
+        },
+        .stepper = cs_op_ldi_stepper,
+        .microstepper = cs_op_ldi_microstepper,
     },
     /* BR-like instructions */
     [CS_INS_I_BRZS] = { .index = CS_INS_I_BRZS, .name = "BRZS", .opcode = 0x6, .format = CS_INS_FORMAT_C, },

@@ -8,7 +8,9 @@
 
 #include "../hash_table.h"
 
+#include "cs2010.h"
 #include "cs_registers.h"
+#include "cs_op.h"
 
 #define CS_INS_FORMAT_A 0
 #define CS_INS_FORMAT_B 1
@@ -69,11 +71,13 @@ typedef enum cs_instruction_idx cs_instruction_idx;
 
 /** @brief CS2010 instruction data */
 struct cs_instruction {
+	uint32_t signals[5];
 	cs_instruction_idx index;
 	char *name;
+	void (*stepper)(cs2010 *cs);
+	void (*microstepper)(cs2010 *cs);
 	uint8_t opcode;
 	uint8_t format;
-	uint32_t signals[5];
 };
 typedef struct cs_instruction cs_instruction;
 

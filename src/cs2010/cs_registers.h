@@ -70,4 +70,4 @@ struct cs_registers {
 };
 typedef struct cs_registers cs_registers;
 
-#endif /* CS_REGISTERFILE_H */
+#endif /* CS_REGISTERS_H */
