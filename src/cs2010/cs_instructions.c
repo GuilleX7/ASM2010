@@ -151,7 +151,7 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_cp_stepper,
-        .microstepper = cs_op_cp_microstepper,
+        .microstepper = cs_op_cp_stepper,
 	},
     [CS_INS_I_MOV] = {
 		.index = CS_INS_I_MOV,
@@ -174,7 +174,7 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_SRW | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_clc_stepper,
-        .microstepper = cs_op_clc_microstepper,
+        .microstepper = cs_op_clc_stepper,
 	},
     [CS_INS_I_SEC] = {
 		.index = CS_INS_I_SEC,
@@ -185,7 +185,7 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP1 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_sec_stepper,
-        .microstepper = cs_op_sec_microstepper,
+        .microstepper = cs_op_sec_stepper,
 	},
     [CS_INS_I_ROR] = {
 		.index = CS_INS_I_ROR,
@@ -220,7 +220,7 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNALS_NONE
         },
         .stepper = cs_op_stop_stepper,
-        .microstepper = cs_op_stop_microstepper,
+        .microstepper = cs_op_stop_stepper,
 	},
     [CS_INS_I_ADDI] = {
 		.index = CS_INS_I_ADDI,
@@ -255,7 +255,7 @@ cs_instruction const cs_ins_list[] = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_cpi_stepper,
-        .microstepper = cs_op_cpi_microstepper,
+        .microstepper = cs_op_cpi_stepper,
     },
     [CS_INS_I_LDI] = {
         .index = CS_INS_I_LDI,

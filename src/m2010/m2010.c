@@ -220,10 +220,10 @@ int main(int argc, char **argv) {
 	IupSetAttributeHandle(main_window, IUP_MENU, menu);
 	IupSetAttribute(main_window, IUP_TITLE, PROGRAM_NAME);
 	IupSetAttribute(main_window, IUP_SIZE, IUP_HALF "x" IUP_HALF);
+	IupSetAttribute(main_window, IUP_SHRINK, IUP_YES);
 	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
 	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
 	IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
-	IupSetAttribute(main_window, IUP_SIZE, 0);
 	IupMainLoop();
 	IupClose();
 	return EXIT_SUCCESS;

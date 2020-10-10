@@ -10,8 +10,8 @@
 #include "cs_memory.h"
 #include "cs_registers.h"
 
-#define CS_CLEAR_RAM (1 << 0)
-#define CS_CLEAR_ROM (1 << 1)
+#define CS_CLEAR_RAM (1u << 0)
+#define CS_CLEAR_ROM (1u << 1)
 
 #define CS_SUCCESS 0
 #define CS_FAILED 1

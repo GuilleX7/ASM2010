@@ -14,14 +14,14 @@
 #define CS_INS_FORMAT_D 3
 #define CS_INS_FORMAT_E 4
 
-#define CS_INS_INM_MAX_VALUE 255
+#define CS_INS_INM_MAX_VALUE 255u
 
 #define CS_INS_NAME_MAX_LENGTH 4
 
-#define CS_JMP_COND_EQUAL 0
-#define CS_JMP_COND_LOWER 1
-#define CS_JMP_COND_OVERFLOW 2
-#define CS_JMP_COND_SLOWER 3
+#define CS_JMP_COND_EQUAL 0u
+#define CS_JMP_COND_LOWER 1u
+#define CS_JMP_COND_OVERFLOW 2u
+#define CS_JMP_COND_SLOWER 3u
 
 #define CS_GET_OPCODE(sentence) ((sentence & 0xF800u) >> 11)
 #define CS_GET_JMP_CONDITION(sentence) ((sentence & 0x700u) >> 8)

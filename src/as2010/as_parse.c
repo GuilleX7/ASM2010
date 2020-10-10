@@ -735,10 +735,10 @@ char *as_disassemble_sentence(uint16_t raw_sentence) {
         }
         break;
     case CS_INS_FORMAT_B:
-        snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, %X", instruction->name, arg_a, arg_b);
+        snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, %02X", instruction->name, arg_a, arg_b);
         break;
     case CS_INS_FORMAT_C:
-        snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s %X", instruction->name, arg_b);
+        snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s %02X", instruction->name, arg_b);
         break;
     case CS_INS_FORMAT_D:
         snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u", instruction->name, arg_a);

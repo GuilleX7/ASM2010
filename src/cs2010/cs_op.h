@@ -47,19 +47,13 @@ void cs_op_sub_microstepper(cs2010 *cs);
 
 void cs_op_cp_stepper(cs2010 *cs);
 
-void cs_op_cp_microstepper(cs2010 *cs);
-
 void cs_op_mov_stepper(cs2010 *cs);
 
 void cs_op_mov_microstepper(cs2010 *cs);
 
 void cs_op_clc_stepper(cs2010 *cs);
 
-void cs_op_clc_microstepper(cs2010 *cs);
-
 void cs_op_sec_stepper(cs2010 *cs);
-
-void cs_op_sec_microstepper(cs2010 *cs);
 
 void cs_op_ror_stepper(cs2010 *cs);
 
@@ -71,8 +65,6 @@ void cs_op_rol_microstepper(cs2010 *cs);
 
 void cs_op_stop_stepper(cs2010 *cs);
 
-void cs_op_stop_microstepper(cs2010 *cs);
-
 void cs_op_addi_stepper(cs2010 *cs);
 
 void cs_op_addi_microstepper(cs2010 *cs);
@@ -82,8 +74,6 @@ void cs_op_subi_stepper(cs2010 *cs);
 void cs_op_subi_microstepper(cs2010 *cs);
 
 void cs_op_cpi_stepper(cs2010 *cs);
-
-void cs_op_cpi_microstepper(cs2010 *cs);
 
 void cs_op_ldi_stepper(cs2010 *cs);
 
