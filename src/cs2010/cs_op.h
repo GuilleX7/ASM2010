@@ -5,6 +5,4 @@
 
 #include "cs2010.h"
 
-
-
 #endif /* CS_OP_H */

@@ -8,6 +8,8 @@
 
 #include "../hash_table.h"
 
+#include "cs_registers.h"
+
 #define CS_INS_FORMAT_A 0
 #define CS_INS_FORMAT_B 1
 #define CS_INS_FORMAT_C 2
@@ -38,6 +40,7 @@ enum cs_instruction_idx {
 	CS_INS_I_LDS = 0x3,
 	CS_INS_I_CALL = 0x4,
 	CS_INS_I_RET = 0x5,
+	CS_INS_I_BRXX = 0x6,
 	CS_INS_I_JMP = 0x7,
 	CS_INS_I_ADD = 0x8,
 	CS_INS_I_SUB = 0xa,
@@ -59,7 +62,7 @@ enum cs_instruction_idx {
 	CS_INS_I_BRLO,
 	CS_INS_I_BRVS,
 	CS_INS_I_BRLT,
-	/* Instruction length */
+	/* Array length */
 	CS_INS_LEN
 };
 typedef enum cs_instruction_idx cs_instruction_idx;
@@ -70,11 +73,12 @@ struct cs_instruction {
 	char *name;
 	uint8_t opcode;
 	uint8_t format;
+	uint32_t signals[5];
 };
 typedef struct cs_instruction cs_instruction;
 
 /** @brief Name and opcode for each instruction */
-cs_instruction const CS_INS_LIST[CS_INS_LEN];
+cs_instruction const cs_ins_list[CS_INS_LEN];
 
 /**
 	@brief Initializes the hash table. Searching names will be allowed from

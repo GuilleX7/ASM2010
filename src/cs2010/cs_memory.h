@@ -9,7 +9,7 @@
 #define CS_RAM_SIZE 256
 
 struct cs_memory {
-    uint8_t *rom;
+    uint16_t *rom;
     uint8_t *ram;
 };
 typedef struct cs_memory cs_memory;
