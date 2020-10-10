@@ -3,9 +3,8 @@
 #ifndef MCS_H
 #define MCS_H
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif /* _MSC_VER */
+#include <stddef.h>
+#include <stdint.h>
 
 #define MCS_EXPORT_SUCCESS 0
 #define MCS_EXPORT_FILE_ERROR 1
@@ -20,13 +19,6 @@
 
 #define MCS_FILE_BIN_EXT ".bin"
 #define MCS_FILE_HEX_EXT ".hex"
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "parse.h"
 
 /**
  * @brief Exports a MachineCS file

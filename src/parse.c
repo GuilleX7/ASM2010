@@ -1,5 +1,9 @@
 /** @file parse.c */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "parse.h"
 
 int skip_spaces(char const **lineptr) {

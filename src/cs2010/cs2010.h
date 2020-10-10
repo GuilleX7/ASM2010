@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #include "cs_memory.h"
 #include "cs_registers.h"

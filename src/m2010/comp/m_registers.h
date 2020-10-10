@@ -1,3 +1,5 @@
+/** @file m_registers.h */
+
 #ifndef M_COMP_REGISTERS_H
 #define M_COMP_REGISTERS_H
 

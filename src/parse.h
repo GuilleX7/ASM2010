@@ -1,12 +1,8 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <ctype.h>
 #include <stdbool.h>
-#include <inttypes.h>
+#include <stddef.h>
 
 #define PARSE_LINE_KEEP 0
 #define PARSE_LINE_WARNING 1

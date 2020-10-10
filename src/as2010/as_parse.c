@@ -4,6 +4,18 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <inttypes.h>
+
+#include "../cs2010/cs_registers.h"
+#include "../cs2010/cs_memory.h"
+
+#include "../utils.h"
+#include "../parse.h"
+
 #include "as_parse.h"
 
 #define EQU_KEYWORD ".EQU "

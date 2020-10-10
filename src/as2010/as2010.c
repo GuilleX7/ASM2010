@@ -7,10 +7,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
 
 #include "../utils.h"
 #include "../mcs.h"
 #include "../about.h"
+#include "../trace_log.h"
 
 #include "as_parse.h"
 

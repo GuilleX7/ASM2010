@@ -1,5 +1,14 @@
 /** @file mcs.c */
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* _MSC_VER */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "parse.h"
 #include "mcs.h"
 
 #define CODE_ALIGNMENT (sizeof(uint16_t))

@@ -3,12 +3,9 @@
 #ifndef TRACE_LOG_H
 #define TRACE_LOG_H
 
-#include <stdio.h>
-#include <stdint.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
 
 struct trace_log {
 	/** @brief Trace buffer */

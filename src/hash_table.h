@@ -3,12 +3,7 @@
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif /* _MSC_VER */
-
-#include <string.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #define CHT_MIN_LOAD_FACTOR 0.15
 #define CHT_MAX_LOAD_FACTOR 0.75

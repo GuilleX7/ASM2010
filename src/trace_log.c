@@ -4,6 +4,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "trace_log.h"
 
 bool trace_log_init(trace_log *log, size_t trace_max_length, size_t log_max_length) {

@@ -40,7 +40,6 @@ bool open_machine_code_file(char *filepath) {
 				m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
 				free(disassembly);
 			}
-			
 		}
 		m_comp_romgrid_set_active(&rom_gridbox, 0);
 		free(code);

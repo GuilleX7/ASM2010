@@ -6,11 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../hash_table.h"
-
 #include "cs2010.h"
-#include "cs_registers.h"
-#include "cs_op.h"
 
 #define CS_INS_FORMAT_A 0
 #define CS_INS_FORMAT_B 1

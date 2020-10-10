@@ -1,5 +1,14 @@
 /** @file utils.c */
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* _MSC_VER */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "utils.h"
 
 bool save_file(char const *filepath, char const *str) {

@@ -1,11 +1,12 @@
+/** @file m_romgrid.h */
+
 #ifndef M_ROMGRID_H
 #define M_ROMGRID_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <iup/iup.h>
-
-#include "../../utils.h"
 
 struct m_comp_romgrid {
     Ihandle *handler;
@@ -31,7 +32,7 @@ Ihandle *m_comp_romgrid_get_handler(m_comp_romgrid *romgrid);
  * @brief Clears the content of the ROM grid
  * @param romgrid Pointer to the component
 */
-void m_comp_romgrid_clear( m_comp_romgrid *romgrid);
+void m_comp_romgrid_clear(m_comp_romgrid *romgrid);
 
 /**
  * @brief Puts a row of machine code at the given position

@@ -1,3 +1,7 @@
+/** @file m_romgrid.c */
+
+#include <stddef.h>
+
 #include "m_romgrid.h"
 
 #define NUM_COLS 3

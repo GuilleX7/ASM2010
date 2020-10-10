@@ -1,5 +1,8 @@
 /** @file cs2010.c */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "cs2010.h"
 #include "cs_instructions.h"
 

@@ -1,5 +1,9 @@
 /** @file cs_instructions.c */
 
+#include "../hash_table.h"
+
+#include "cs_registers.h"
+#include "cs_op.h"
 #include "cs_instructions.h"
 
 cs_instruction const cs_ins_list[] = {

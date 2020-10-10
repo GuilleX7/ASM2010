@@ -3,21 +3,14 @@
 #ifndef AS_PARSE_H
 #define AS_PARSE_H
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <ctype.h>
 #include <stdbool.h>
-#include <inttypes.h>
 
 #include "../cs2010/cs_instructions.h"
-#include "../cs2010/cs_registers.h"
-#include "../cs2010/cs_memory.h"
 
 #include "../hash_table.h"
 #include "../trace_log.h"
-#include "../utils.h"
-#include "../parse.h"
 
 #define AS_MAX_SOURCE_LINES 65535
 #define AS_MAX_LINE_LENGTH 256

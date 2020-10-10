@@ -3,17 +3,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif /* _MSC_VER */
-
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <ctype.h>
 #include <inttypes.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #define STRGIFY(a) #a
 #define STRINGIFY(a) STRGIFY(a)

@@ -1,6 +1,14 @@
 /** @file hash_table.c */
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* _MSC_VER */
+
+#include <string.h>
+#include <stdlib.h>
+
 #include "hash_table.h"
+
 #define COUNT_OF(x) (sizeof x / sizeof x[0])
 
 /**
