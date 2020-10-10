@@ -22,6 +22,15 @@ bool cs_init(cs2010 *cs) {
         return false;
     }
 
+    cs->reg.regfile[0] = &cs->reg.r0;
+    cs->reg.regfile[1] = &cs->reg.r1;
+    cs->reg.regfile[2] = &cs->reg.r2;
+    cs->reg.regfile[3] = &cs->reg.r3;
+    cs->reg.regfile[4] = &cs->reg.r4;
+    cs->reg.regfile[5] = &cs->reg.r5;
+    cs->reg.regfile[6] = &cs->reg.r6;
+    cs->reg.regfile[7] = &cs->reg.r7;
+
     cs_hard_reset(cs);
     return true;
 }

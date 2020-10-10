@@ -1,17 +1,39 @@
 /** @file cs_op.c */
 
+#include "cs_instructions.h"
 #include "cs_op.h"
 
 void cs_op_st_stepper(cs2010 *cs) {
-
+    cs->mem.ram[CS_GET_ARG_B(cs->reg.ir)] = *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    cs_fetch(cs);
 }
 
 void cs_op_st_microstepper(cs2010 *cs) {
-
+    switch (cs->microop) {
+    case 0:
+        cs->reg.ac = *cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+        cs_microfetch(cs);
+        break;
+    case 1:
+        cs->reg.mar = cs->reg.ac;
+        cs->reg.ac = *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+        cs_microfetch(cs);
+        break;
+    case 2:
+        cs->reg.mdr = cs->reg.ac;
+        cs_microfetch(cs);
+        break;
+    case 3:
+    default:
+        cs->mem.ram[cs->reg.mar] = cs->reg.mdr;
+        cs_fetch(cs);
+        break;
+    }
 }
 
 void cs_op_ld_stepper(cs2010 *cs) {
-
+    *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)] = cs->mem.ram[CS_GET_ARG_B(cs->reg.ir)];
+    cs_fetch(cs);
 }
 
 void cs_op_ld_microstepper(cs2010 *cs) {

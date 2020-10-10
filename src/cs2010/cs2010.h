@@ -38,6 +38,8 @@ void cs_reset_registers(cs2010 *cs, bool clear_signals);
 
 int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length);
 
+void cs_microfetch(cs2010 *cs);
+
 void cs_fetch(cs2010 *cs);
 
 void cs_microstep(cs2010 *cs);

@@ -28,7 +28,7 @@ cs_instruction const cs_ins_list[] = {
         .format = CS_INS_FORMAT_A,
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
+            CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
         },
@@ -56,7 +56,7 @@ cs_instruction const cs_ins_list[] = {
         .format = CS_INS_FORMAT_B,
         .signals = {
             CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
+            CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
         },
@@ -83,7 +83,7 @@ cs_instruction const cs_ins_list[] = {
         .opcode = 0x5,
         .format = CS_INS_FORMAT_E,
         .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM | CS_SIGNAL_ISP,
+            CS_SIGNAL_ISP,
             CS_SIGNAL_RSP | CS_SIGNAL_WMAR,
             CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
             CS_SIGNAL_WPC | CS_SIGNAL_IOMDR,
@@ -148,7 +148,7 @@ cs_instruction const cs_ins_list[] = {
 		.opcode = 0xb,
 		.format = CS_INS_FORMAT_A,
         .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
+            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_cp_stepper,
         .microstepper = cs_op_cp_microstepper,
@@ -252,7 +252,7 @@ cs_instruction const cs_ins_list[] = {
         .opcode = 0x1b,
         .format = CS_INS_FORMAT_B,
         .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH
+            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH
         },
         .stepper = cs_op_cpi_stepper,
         .microstepper = cs_op_cpi_microstepper,

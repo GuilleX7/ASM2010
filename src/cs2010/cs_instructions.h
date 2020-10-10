@@ -26,7 +26,9 @@
 #define CS_GET_OPCODE(sentence) ((sentence & 0xF800u) >> 11)
 #define CS_GET_JMP_CONDITION(sentence) ((sentence & 0x700u) >> 8)
 #define CS_GET_ARG_A(sentence) CS_GET_JMP_CONDITION(sentence)
+#define CS_GET_REG_A(sentence) CS_GET_ARG_A(sentence)
 #define CS_GET_ARG_B(sentence) (sentence & 0xFFu)
+#define CS_GET_REG_B(sentence) (CS_GET_ARG_B(sentence) & 0x7u)
 #define CS_GET_RAW_SENTENCE(lsbyte, msbyte) (((uint16_t) msbyte << 8) + (uint16_t) lsbyte)
 
 /** @brief List of instructions' indexes */

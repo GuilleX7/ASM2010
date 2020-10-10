@@ -61,6 +61,7 @@ struct cs_registers {
     uint8_t r5;
     uint8_t r6;
     uint8_t r7;
+    uint8_t *regfile[8];
     uint8_t sp;
     uint8_t pc;
     uint8_t ac;
