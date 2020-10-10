@@ -19,7 +19,7 @@ typedef struct m_comp_romgrid m_comp_romgrid;
  * @brief Creates a new component
  * @return A created and initiated component
 */
-m_comp_romgrid m_comp_romgrid_create();
+m_comp_romgrid m_comp_romgrid_create(void);
 
 /**
  * @brief Gets the IUP handler of the component

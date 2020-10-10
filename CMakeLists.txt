@@ -64,6 +64,10 @@ set(M2010_SOURCE
 "src/m2010/m2010.c"
 "src/m2010/comp/m_romgrid.c"
 "src/m2010/comp/m_romgrid.h"
+"src/m2010/comp/m_reggrid.c"
+"src/m2010/comp/m_reggrid.h"
+"src/m2010/comp/m_ramgrid.c"
+"src/m2010/comp/m_ramgrid.h"
 )
 set(TINYCTHREAD_SOURCE
 "include/tinycthread/tinycthread.c"

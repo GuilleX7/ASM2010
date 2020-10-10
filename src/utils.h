@@ -30,6 +30,11 @@ digits++;\
 #  define PRI_SIZET "zu"
 #endif /* _WIN32 */
 
+#define UINT8_HEX_FORMAT "%02X"
+#define UINT16_HEX_FORMAT "%04X"
+#define UINT32_HEX_FORMAT "%08X"
+#define UINT64_HEX_FORMAT "%016X"
+
 /**
  * @brief Saves the given text to a file
  * @param filepath Path to the file

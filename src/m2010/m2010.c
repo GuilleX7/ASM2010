@@ -17,11 +17,13 @@
 #include "../as2010/as_parse.h"
 
 #include "comp/m_romgrid.h"
+#include "comp/m_reggrid.h"
 
 #define PROGRAM_NAME "M2010"
 #define PROGRAM_DESCRIPTION "CS2010 emulator"
 
 m_comp_romgrid rom_gridbox;
+m_comp_reggrid reg_gridbox;
 
 bool open_machine_code_file(char *filepath) {
 	uint16_t *code = { 0 };
@@ -118,7 +120,7 @@ int about_cb(Ihandle *self) {
 
 int main(int argc, char **argv) {
 	/* Main window*/
-	Ihandle *main_window, *main_vbox, *menu;
+	Ihandle *main_window, *split, *menu;
 	/* File submenu */
 	Ihandle *file_submenu, *open_machine_code_file_item, *save_dissasembled_code_file_item, *exit_item;
 	/* Machine submenu */
@@ -128,8 +130,8 @@ int main(int argc, char **argv) {
 		*start_clock_item, *stop_clock_item, *reset_all_simulation_item;
 	/* About submenu */
 	Ihandle *about_submenu, *about_item;
-	/* ROM gridbox */
-	Ihandle *rom_tabs;
+	/* Tabs */
+	Ihandle *rom_tabs, *reg_tabs;
 	
 	if (IupOpen(&argc, &argv) == IUP_ERROR) {
 		puts("Error while opening GUI, aborting execution...\n");
@@ -205,25 +207,36 @@ int main(int argc, char **argv) {
 
 	rom_gridbox = m_comp_romgrid_create();
 	rom_tabs = IupTabs(
-			m_comp_romgrid_get_handler(&rom_gridbox),
+		IupScrollBox(
+			m_comp_romgrid_get_handler(&rom_gridbox)
+		),
 		0
 	);
 	IupSetAttribute(rom_tabs, "TABTITLE0", "ROM code");
-	
+
+	reg_gridbox = m_comp_reggrid_create();
+	reg_tabs = IupTabs(
+		IupScrollBox(
+			m_comp_reggrid_get_handler(&reg_gridbox)
+		),
+		0
+	);
+	IupSetAttribute(reg_tabs, "TABTITLE0", "Registers");
+
+	split = IupSplit(rom_tabs, reg_tabs);
+	IupSetAttribute(split, "LAYOUTDRAG", IUP_NO);
+	IupSetAttribute(IupGetChild(split, 0), "STYLE", "EMPTY");
+
 	main_window = IupDialog(
-		main_vbox = IupVbox(
-			rom_tabs,
-			0
-		)
+		split
 	);
 
 	IupSetAttributeHandle(main_window, IUP_MENU, menu);
 	IupSetAttribute(main_window, IUP_TITLE, PROGRAM_NAME);
-	IupSetAttribute(main_window, IUP_SIZE, IUP_HALF "x" IUP_HALF);
-	IupSetAttribute(main_window, IUP_SHRINK, IUP_YES);
 	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
 	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
 	IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
+	IupSetAttribute(main_window, IUP_EXPAND, "YES");
 	IupMainLoop();
 	IupClose();
 	return EXIT_SUCCESS;
