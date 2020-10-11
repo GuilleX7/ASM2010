@@ -36,6 +36,11 @@ digits++;\
 #define HEX16_FORMAT "%04X"
 #define HEX32_FORMAT "%08X"
 #define HEX64_FORMAT "%016X"
+#define HEX4_X_FORMAT "0x%01X"
+#define HEX8_X_FORMAT "0x%02X"
+#define HEX16_X_FORMAT "0x%04X"
+#define HEX32_X_FORMAT "0x%08X"
+#define HEX64_X_FORMAT "0x%016X"
 
 /**
  * @brief Saves the given text to a file

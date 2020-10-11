@@ -34,7 +34,6 @@ typedef enum m_comp_reggrid_reg_idx m_comp_reggrid_reg_idx;
 struct m_comp_reggrid_reg {
     char *name;
     char *format;
-    void (*setter)(size_t);
 };
 typedef struct m_comp_reggrid_reg m_comp_reggrid_reg;
 
@@ -51,7 +50,7 @@ m_comp_reggrid m_comp_reggrid_create(void);
 
 /**
  * @brief Gets the IUP handler of the component
- * @param registers Pointer to the component
+ * @param reggrid Pointer to the component
  * @return Ihandler of the IUP component
 */
 Ihandle *m_comp_reggrid_get_handler(m_comp_reggrid *reggrid);
@@ -63,5 +62,11 @@ Ihandle *m_comp_reggrid_get_handler(m_comp_reggrid *reggrid);
  * @param value Value to be set
 */
 void m_comp_reggrid_set(m_comp_reggrid *reggrid, m_comp_reggrid_reg_idx reg, size_t value);
+
+/**
+ * @brief Clears all the registers
+ * @param reggrid Pointer to the component
+*/
+void m_comp_reggrid_clear(m_comp_reggrid *reggrid);
 
 #endif /* M_COMP_REGGRID_H */

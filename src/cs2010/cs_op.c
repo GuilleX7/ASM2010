@@ -7,12 +7,11 @@
 
 inline void cs_op_ram_set(cs2010 *cs, uint8_t address, uint8_t value) {
     cs->mem.ram[address] = value;
-    cs->has_ram_changed = true;
-    cs->ram_change_address = address;
+    cs->last_ram_change_address = address;
 }
 
 void cs_op_st_stepper(cs2010 *cs) {
-    cs_op_ram_set(cs, CS_GET_ARG_B(cs->reg.ir), *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)]);
+    cs_op_ram_set(cs, *cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)], *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)]);
     cs_fetch(cs);
 }
 
@@ -122,7 +121,8 @@ void cs_op_lds_microstepper(cs2010 *cs) {
 }
 
 void cs_op_call_stepper(cs2010 *cs) {
-    cs_op_ram_set(cs, cs->reg.sp--, cs->reg.pc);
+    cs_op_ram_set(cs, cs->reg.sp, cs->reg.pc);
+    cs->reg.sp--;
     cs->reg.pc = CS_GET_ARG_B(cs->reg.ir);
     cs_fetch(cs);
 }
@@ -142,7 +142,7 @@ void cs_op_call_microstepper(cs2010 *cs) {
     default:
         cs->reg.pc = cs->reg.ac;
         cs_op_ram_set(cs, cs->reg.mar, cs->reg.mdr);
-        cs_microfetch(cs);
+        cs_fetch(cs);
         break;
     }
 }
@@ -188,6 +188,8 @@ inline bool cs_op_check_jmp(cs2010 *cs) {
         break;
     case CS_JMP_COND_SLOWER:
         jump = !!(cs->reg.sr & CS_SR_V) ^ !!(cs->reg.sr & CS_SR_N);
+        break;
+    default:
         break;
     }
     return jump;
@@ -286,24 +288,24 @@ void cs_op_add_microstepper(cs2010 *cs) {
 
 void cs_op_sub_stepper(cs2010 *cs) {
     uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t *b = cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-    uint8_t c = *a - *b;
-    cs_op_set_arithmetic_flags(cs, *a, *b, c);
+    uint8_t b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+    uint8_t c = *a + b;
+    cs_op_set_arithmetic_flags(cs, *a, b, c);
     *a = c;
     cs_fetch(cs);
 }
 
 void cs_op_sub_microstepper(cs2010 *cs) {
     uint8_t *a;
-    uint8_t *b;
+    uint8_t b;
     uint8_t c;
 
     switch (cs->microop) {
     case 0:
         a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-        b = cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-        c = *a - *b;
-        cs_op_set_arithmetic_flags(cs, *a, *b, c);
+        b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+        c = *a + b;
+        cs_op_set_arithmetic_flags(cs, *a, b, c);
         cs->reg.ac = c;
         cs_microfetch(cs);
     case 1:
@@ -316,9 +318,9 @@ void cs_op_sub_microstepper(cs2010 *cs) {
 
 void cs_op_cp_stepper(cs2010 *cs) {
     uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t *b = cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-    uint8_t c = *a - *b;
-    cs_op_set_arithmetic_flags(cs, *a, *b, c);
+    uint8_t b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+    uint8_t c = *a + b;
+    cs_op_set_arithmetic_flags(cs, *a, b, c);
     cs_fetch(cs);
 }
 
@@ -464,6 +466,7 @@ void cs_op_addi_microstepper(cs2010 *cs) {
         cs_op_set_arithmetic_flags(cs, *a, b, c);
         cs->reg.ac = c;
         cs_microfetch(cs);
+        break;
     case 1:
     default:
         *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)] = cs->reg.ac;
@@ -494,6 +497,7 @@ void cs_op_subi_microstepper(cs2010 *cs) {
         cs_op_set_arithmetic_flags(cs, *a, b, c);
         cs->reg.ac = c;
         cs_microfetch(cs);
+        break;
     case 1:
     default:
         *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)] = cs->reg.ac;

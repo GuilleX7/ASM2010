@@ -68,6 +68,8 @@ set(M2010_SOURCE
 "src/m2010/comp/m_reggrid.h"
 "src/m2010/comp/m_ramgrid.c"
 "src/m2010/comp/m_ramgrid.h"
+"src/m2010/comp/m_siggrid.c"
+"src/m2010/comp/m_siggrid.h"
 )
 set(TINYCTHREAD_SOURCE
 "include/tinycthread/tinycthread.c"

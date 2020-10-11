@@ -8,6 +8,7 @@
 
 cs_instruction const cs_ins_list[] = {
     [CS_INS_I_ST] = {
+        .exec = true,
         .index = CS_INS_I_ST,
         .name = "ST",
         .opcode = 0x0,
@@ -22,6 +23,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_st_microstepper,
     },
     [CS_INS_I_LD] = {
+        .exec = true,
         .index = CS_INS_I_LD,
         .name = "LD",
         .opcode = 0x1,
@@ -36,6 +38,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_ld_microstepper,
     },
     [CS_INS_I_STS] = {
+        .exec = true,
         .index = CS_INS_I_STS,
         .name = "STS",
         .opcode = 0x2,
@@ -50,6 +53,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_sts_microstepper,
     },
     [CS_INS_I_LDS] = {
+        .exec = true,
         .index = CS_INS_I_LDS,
         .name = "LDS",
         .opcode = 0x3,
@@ -64,6 +68,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_lds_microstepper,
     },
     [CS_INS_I_CALL] = {
+        .exec = true,
         .index = CS_INS_I_CALL,
         .name = "CALL",
         .opcode = 0x4,
@@ -78,6 +83,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_call_microstepper,
     },
     [CS_INS_I_RET] = {
+        .exec = true,
         .index = CS_INS_I_RET,
         .name = "RET",
         .opcode = 0x5,
@@ -93,6 +99,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_ret_microstepper,
     },
     [CS_INS_I_BRXX] = {
+        .exec = true,
         .index = CS_INS_I_BRXX,
         .name = 0,
         .opcode = 0x6,
@@ -106,6 +113,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_brxx_microstepper,
     },
     [CS_INS_I_JMP] = {
+        .exec = true,
 		.index = CS_INS_I_JMP,
 		.name = "JMP",
 		.opcode = 0x7,
@@ -119,6 +127,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_jmp_microstepper,
 	},
     [CS_INS_I_ADD] = {
+        .exec = true,
 		.index = CS_INS_I_ADD,
 		.name = "ADD",
 		.opcode = 0x8,
@@ -131,6 +140,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_add_microstepper,
 	},
     [CS_INS_I_SUB] = {
+        .exec = true,
 		.index = CS_INS_I_SUB,
 		.name = "SUB",
 		.opcode = 0xa,
@@ -143,6 +153,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_sub_microstepper,
 	},
     [CS_INS_I_CP] = {
+        .exec = true,
 		.index = CS_INS_I_CP,
 		.name = "CP",
 		.opcode = 0xb,
@@ -154,6 +165,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_cp_stepper,
 	},
     [CS_INS_I_MOV] = {
+        .exec = true,
 		.index = CS_INS_I_MOV,
 		.name = "MOV",
 		.opcode = 0xf,
@@ -166,6 +178,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_mov_microstepper,
 	},
     [CS_INS_I_CLC] = {
+        .exec = true,
 		.index = CS_INS_I_CLC,
 		.name = "CLC",
 		.opcode = 0x12,
@@ -177,6 +190,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_clc_stepper,
 	},
     [CS_INS_I_SEC] = {
+        .exec = true,
 		.index = CS_INS_I_SEC,
 		.name = "SEC",
 		.opcode = 0x13,
@@ -188,6 +202,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_sec_stepper,
 	},
     [CS_INS_I_ROR] = {
+        .exec = true,
 		.index = CS_INS_I_ROR,
 		.name = "ROR",
 		.opcode = 0x14,
@@ -200,6 +215,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_ror_microstepper,
 	},
     [CS_INS_I_ROL] = {
+        .exec = true,
 		.index = CS_INS_I_ROL,
 		.name = "ROL",
 		.opcode = 0x15,
@@ -212,6 +228,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_rol_microstepper,
 	},
     [CS_INS_I_STOP] = {
+        .exec = true,
 		.index = CS_INS_I_STOP,
 		.name = "STOP",
 		.opcode = 0x17,
@@ -223,6 +240,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_stop_stepper,
 	},
     [CS_INS_I_ADDI] = {
+        .exec = true,
 		.index = CS_INS_I_ADDI,
 		.name = "ADDI",
 		.opcode = 0x18,
@@ -235,6 +253,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_addi_microstepper,
 	},
     [CS_INS_I_SUBI] = {
+        .exec = true,
 		.index = CS_INS_I_SUBI,
 		.name = "SUBI",
 		.opcode = 0x1a,
@@ -247,6 +266,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_subi_microstepper,
 	},
     [CS_INS_I_CPI] = {
+        .exec = true,
         .index = CS_INS_I_CPI,
         .name = "CPI",
         .opcode = 0x1b,
@@ -258,6 +278,7 @@ cs_instruction const cs_ins_list[] = {
         .microstepper = cs_op_cpi_stepper,
     },
     [CS_INS_I_LDI] = {
+        .exec = true,
         .index = CS_INS_I_LDI,
         .name = "LDI",
         .opcode = 0x1f,

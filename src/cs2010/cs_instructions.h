@@ -76,6 +76,7 @@ struct cs_instruction {
 	void (*microstepper)(cs2010 *cs);
 	uint8_t opcode;
 	uint8_t format;
+	bool exec;
 };
 typedef struct cs_instruction cs_instruction;
 

@@ -12,7 +12,11 @@
 #define COL_HEADER_3 "DISASSEMBLY"
 
 #define GET_ROWS_SIZE(child_count) ((child_count / NUM_COLS) - 1)
-#define GET_ROW_IDX(index) ((index + 1) * NUM_COLS)
+#define GET_ROW_IDX(address) ((address + 1) * NUM_COLS)
+
+#define ADDRESS_FORMAT HEX8_X_FORMAT
+#define CONTENT_FORMAT HEX16_X_FORMAT
+#define DISASSEMBLY_FORMAT "%s"
 
 #define CONTENT_UNKNOWN "???"
 
@@ -67,10 +71,10 @@ void m_comp_romgrid_clear(m_comp_romgrid *romgrid) {
     }
 }
 
-void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence, char *disassembly) {
+void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, uint16_t content, char *disassembly) {
     Ihandle *gridbox = { 0 };
-    Ihandle *label_idx = { 0 };
-    Ihandle *label_sentence = { 0 };
+    Ihandle *label_address = { 0 };
+    Ihandle *label_content = { 0 };
     Ihandle *label_disassembly = { 0 };
     int element_number = 0;
     if (!romgrid) {
@@ -79,30 +83,30 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence
 
     gridbox = m_comp_romgrid_get_handler(romgrid);
     element_number = GET_ROWS_SIZE(IupGetChildCount(gridbox));
-    if (index < element_number) {
-        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index)), "TITLE", HEX8_FORMAT, index);
-        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 1), "TITLE", HEX16_FORMAT, sentence);
-        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 2), "TITLE", "%s", disassembly);
+    if (address < element_number) {
+        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address)), "TITLE", ADDRESS_FORMAT, address);
+        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address) + 1), "TITLE", CONTENT_FORMAT, content);
+        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address) + 2), "TITLE", "%s", disassembly);
         IupRefresh(gridbox);
     } else {
-        for (size_t i = element_number; i < index; i++) {
-            IupAppend(gridbox, (label_idx = IupLabel("")));
-            IupMap(label_idx);
-            IupAppend(gridbox, (label_sentence = IupLabel(CONTENT_UNKNOWN)));
-            IupMap(label_sentence);
+        for (size_t i = element_number; i < address; i++) {
+            IupAppend(gridbox, (label_address = IupLabel("")));
+            IupMap(label_address);
+            IupAppend(gridbox, (label_content = IupLabel(CONTENT_UNKNOWN)));
+            IupMap(label_content);
             IupAppend(gridbox, (label_disassembly = IupLabel(CONTENT_UNKNOWN)));
             IupMap(label_disassembly);
-            IupSetfAttribute(label_idx, "TITLE", HEX8_FORMAT, i);
+            IupSetfAttribute(label_address, "TITLE", ADDRESS_FORMAT, i);
         }
 
-        IupAppend(gridbox, (label_idx = IupLabel("")));
-        IupMap(label_idx);
-        IupAppend(gridbox, (label_sentence = IupLabel("")));
-        IupMap(label_sentence);
+        IupAppend(gridbox, (label_address = IupLabel("")));
+        IupMap(label_address);
+        IupAppend(gridbox, (label_content = IupLabel("")));
+        IupMap(label_content);
         IupAppend(gridbox, (label_disassembly = IupLabel("")));
         IupMap(label_disassembly);
-        IupSetfAttribute(label_idx, "TITLE", HEX8_FORMAT, index);
-        IupSetfAttribute(label_sentence, "TITLE", HEX16_FORMAT, sentence);
+        IupSetfAttribute(label_address, "TITLE", ADDRESS_FORMAT, address);
+        IupSetfAttribute(label_content, "TITLE", CONTENT_FORMAT, content);
         IupSetfAttribute(label_disassembly, "TITLE", "%s", disassembly);
         IupRefresh(gridbox);
     }

@@ -43,9 +43,7 @@ void cs_hard_reset(cs2010 *cs) {
     cs_clear_memory(cs, CS_CLEAR_RAM | CS_CLEAR_ROM);
     cs_reset_registers(cs, true);
     cs->stopped = false;
-    cs->has_ram_changed = false;
-    cs->ram_change_address = 0;
-    cs_fetch(cs);
+    cs->last_ram_change_address = 0;
 }
 
 void cs_soft_reset(cs2010 *cs) {
@@ -56,9 +54,7 @@ void cs_soft_reset(cs2010 *cs) {
     cs->reg.pc = 0;
     cs->reg.sp = UINT8_MAX;
     cs->stopped = false;
-    cs->has_ram_changed = false;
-    cs->ram_change_address = 0;
-    cs_fetch(cs);
+    cs->last_ram_change_address = 0;
 }
 
 void cs_clear_memory(cs2010 *cs, uint8_t flags) {
@@ -109,12 +105,13 @@ int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length) 
     }
 
     for (size_t i = 0; i < sentences_length; i++) {
-        if (!cs_ins_list[CS_GET_OPCODE(sentences[i])].name) {
+        if (!cs_ins_list[CS_GET_OPCODE(sentences[i])].exec) {
             return CS_INVALID_INSTRUCTIONS;
         }
         cs->mem.rom[i] = sentences[i];
     }
 
+    cs_fetch(cs);
     return CS_SUCCESS;
 }
 

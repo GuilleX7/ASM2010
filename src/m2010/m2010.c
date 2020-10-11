@@ -18,21 +18,81 @@
 
 #include "comp/m_romgrid.h"
 #include "comp/m_reggrid.h"
+#include "comp/m_ramgrid.h"
+#include "comp/m_siggrid.h"
 
 #define PROGRAM_NAME "M2010"
 #define PROGRAM_DESCRIPTION "CS2010 emulator"
 
 m_comp_romgrid rom_gridbox;
 m_comp_reggrid reg_gridbox;
+m_comp_ramgrid ram_gridbox;
+m_comp_siggrid sig_gridbox;
 
-bool open_machine_code_file(char *filepath) {
+cs2010 *cs;
+bool is_cs_ready;
+
+int check_machine_running() {
+	if (is_cs_ready) {
+		switch (IupAlarm("Warning", "The computer will be wiped out if you try loading a new program", "OK", "Cancel", 0)) {
+		case 1:  /* Continue */
+			break;
+		case 2:  /* Cancel */
+		default:
+			return false;
+			break;
+		}
+	}
+
+	return true;
+}
+
+void update_machine_ui(cs2010 *cs) {
+	m_comp_romgrid_set_active(&rom_gridbox, cs->reg.pc - 1);
+	uint8_t ram_ad = cs->last_ram_change_address & 0xF0;
+	m_comp_ramgrid_set(&ram_gridbox, ram_ad, &cs->mem.ram[ram_ad]);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R0, cs->reg.r0);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R1, cs->reg.r1);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R2, cs->reg.r2);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R3, cs->reg.r3);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R4, cs->reg.r4);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R5, cs->reg.r5);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R6, cs->reg.r6);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R7, cs->reg.r7);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_PC, cs->reg.pc);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_SP, cs->reg.sp);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_IR, cs->reg.ir);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_AC, cs->reg.ac);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_SR_V, !!(cs->reg.sr & CS_SR_V));
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_SR_N, !!(cs->reg.sr & CS_SR_N));
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_SR_Z, !!(cs->reg.sr & CS_SR_Z));
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_SR_C, !!(cs->reg.sr & CS_SR_C));
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_MDR, cs->reg.mdr);
+	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_MAR, cs->reg.mar);
+	m_comp_siggrid_set_signals(&sig_gridbox, cs->reg.signals);
+}
+
+bool open_machine_code_file(char *filepath, cs2010 *cs) {
 	uint16_t *code = { 0 };
 	size_t code_size = 0;
 	int mcs_format = 0;
 	char *disassembly = { 0 };
 
+	if (!check_machine_running()) {
+		return true;
+	}
+
 	if (mcs_import_file(filepath, &code, &code_size, &mcs_format) == MCS_IMPORT_SUCCESS) {
 		m_comp_romgrid_clear(&rom_gridbox);
+		m_comp_ramgrid_clear(&ram_gridbox);
+		m_comp_reggrid_clear(&reg_gridbox);
+		cs_hard_reset(cs);
+		is_cs_ready = false;
+		if (cs_load_and_check(cs, code, code_size) != CS_SUCCESS) {
+			free(code);
+			return false;
+		}
+
 		for (int i = 0; i < code_size; i++) {
 			disassembly = as_disassemble_sentence(code[i]);
 			if (!disassembly) {
@@ -43,8 +103,10 @@ bool open_machine_code_file(char *filepath) {
 				free(disassembly);
 			}
 		}
-		m_comp_romgrid_set_active(&rom_gridbox, 0);
-		free(code);
+
+		is_cs_ready = true;
+		update_machine_ui(cs);
+		
 		return true;
 	}
 
@@ -63,7 +125,7 @@ int open_machine_code_file_cb(Ihandle *self) {
 	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
 	if (IupGetInt(dlg, "STATUS") != -1) {
 		filepath = IupGetAttribute(dlg, "VALUE");
-		if (!open_machine_code_file(filepath)) {
+		if (!open_machine_code_file(filepath, cs)) {
 			IupMessagef("Error", "Couldn't open file %s", filepath);
 		}
 	}
@@ -84,10 +146,18 @@ int set_machine_settings_cb(Ihandle *self) {
 }
 
 int step_instruction_cb(Ihandle *self) {
+	if (is_cs_ready) {
+		cs_fullstep(cs);
+		update_machine_ui(cs);
+	}
 	return IUP_DEFAULT;
 }
 
 int step_microinstruction_cb(Ihandle *self) {
+	if (is_cs_ready) {
+		cs_microstep(cs);
+		update_machine_ui(cs);
+	}
 	return IUP_DEFAULT;
 }
 
@@ -120,7 +190,7 @@ int about_cb(Ihandle *self) {
 
 int main(int argc, char **argv) {
 	/* Main window*/
-	Ihandle *main_window, *split, *menu;
+	Ihandle *main_window, *menu;
 	/* File submenu */
 	Ihandle *file_submenu, *open_machine_code_file_item, *save_dissasembled_code_file_item, *exit_item;
 	/* Machine submenu */
@@ -130,8 +200,8 @@ int main(int argc, char **argv) {
 		*start_clock_item, *stop_clock_item, *reset_all_simulation_item;
 	/* About submenu */
 	Ihandle *about_submenu, *about_item;
-	/* Tabs */
-	Ihandle *rom_tabs, *reg_tabs;
+	/* Tabs and splits */
+	Ihandle *rom_tabs, *reg_tabs, *ram_tabs, *romregram_split, *regram_split;
 	
 	if (IupOpen(&argc, &argv) == IUP_ERROR) {
 		puts("Error while opening GUI, aborting execution...\n");
@@ -215,26 +285,57 @@ int main(int argc, char **argv) {
 	IupSetAttribute(rom_tabs, "TABTITLE0", "ROM code");
 
 	reg_gridbox = m_comp_reggrid_create();
+	sig_gridbox = m_comp_siggrid_create();
 	reg_tabs = IupTabs(
 		IupScrollBox(
 			m_comp_reggrid_get_handler(&reg_gridbox)
 		),
+		IupScrollBox(
+			m_comp_siggrid_get_handler(&sig_gridbox)
+		),
 		0
 	);
 	IupSetAttribute(reg_tabs, "TABTITLE0", "Registers");
+	IupSetAttribute(reg_tabs, "TABTITLE1", "Signals");
 
-	split = IupSplit(rom_tabs, reg_tabs);
-	IupSetAttribute(split, "LAYOUTDRAG", IUP_NO);
-	IupSetAttribute(IupGetChild(split, 0), "STYLE", "EMPTY");
+	ram_gridbox = m_comp_ramgrid_create();
+	ram_tabs = IupTabs(
+		IupScrollBox(
+			m_comp_ramgrid_get_handler(&ram_gridbox)
+		),
+		0
+	);
+	IupSetAttribute(ram_tabs, "TABTITLE0", "RAM");
+
+	regram_split = IupSplit(reg_tabs, ram_tabs);
+	IupSetAttribute(regram_split, "LAYOUTDRAG", IUP_NO);
+	IupSetAttribute(IupGetChild(regram_split, 0), "STYLE", "EMPTY");
+	IupSetAttribute(regram_split, IUP_ORIENTATION, IUP_HORIZONTAL);
+
+	romregram_split = IupSplit(rom_tabs, regram_split);
+	IupSetAttribute(romregram_split, "LAYOUTDRAG", IUP_NO);
+	IupSetAttribute(IupGetChild(romregram_split, 0), "STYLE", "EMPTY");
 
 	main_window = IupDialog(
-		split
+		romregram_split
 	);
 
 	IupSetAttributeHandle(main_window, IUP_MENU, menu);
 	IupSetAttribute(main_window, IUP_TITLE, PROGRAM_NAME);
 	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
+	IupSetCallback(main_window, "K_cI", (Icallback) step_instruction_cb);
+	IupSetCallback(main_window, "K_cM", (Icallback) step_microinstruction_cb);
 	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
+
+	cs = malloc(sizeof * cs);
+	if (!cs) {
+		IupMessage("Error", "Couldn't initialize CS2010");
+		IupClose();
+		return EXIT_FAILURE;
+	}
+	cs_init(cs);
+	is_cs_ready = false;
+
 	IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
 	IupSetAttribute(main_window, IUP_EXPAND, "YES");
 	IupMainLoop();
