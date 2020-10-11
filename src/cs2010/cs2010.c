@@ -43,6 +43,8 @@ void cs_hard_reset(cs2010 *cs) {
     cs_clear_memory(cs, CS_CLEAR_RAM | CS_CLEAR_ROM);
     cs_reset_registers(cs, true);
     cs->stopped = false;
+    cs->has_ram_changed = false;
+    cs->ram_change_address = 0;
     cs_fetch(cs);
 }
 
@@ -54,6 +56,8 @@ void cs_soft_reset(cs2010 *cs) {
     cs->reg.pc = 0;
     cs->reg.sp = UINT8_MAX;
     cs->stopped = false;
+    cs->has_ram_changed = false;
+    cs->ram_change_address = 0;
     cs_fetch(cs);
 }
 

@@ -5,8 +5,14 @@
 #include "cs_instructions.h"
 #include "cs_op.h"
 
+inline void cs_op_ram_set(cs2010 *cs, uint8_t address, uint8_t value) {
+    cs->mem.ram[address] = value;
+    cs->has_ram_changed = true;
+    cs->ram_change_address = address;
+}
+
 void cs_op_st_stepper(cs2010 *cs) {
-    cs->mem.ram[CS_GET_ARG_B(cs->reg.ir)] = *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    cs_op_ram_set(cs, CS_GET_ARG_B(cs->reg.ir), *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)]);
     cs_fetch(cs);
 }
 
@@ -27,7 +33,7 @@ void cs_op_st_microstepper(cs2010 *cs) {
         break;
     case 3:
     default:
-        cs->mem.ram[cs->reg.mar] = cs->reg.mdr;
+        cs_op_ram_set(cs, cs->reg.mar, cs->reg.mdr);
         cs_fetch(cs);
         break;
     }
@@ -61,7 +67,7 @@ void cs_op_ld_microstepper(cs2010 *cs) {
 }
 
 void cs_op_sts_stepper(cs2010 *cs) {
-    cs->mem.ram[CS_GET_ARG_B(cs->reg.ir)] = *cs->reg.regfile[CS_GET_ARG_A(cs->reg.ir)];
+    cs_op_ram_set(cs, CS_GET_ARG_B(cs->reg.ir), *cs->reg.regfile[CS_GET_ARG_A(cs->reg.ir)]);
     cs_fetch(cs);
 }
 
@@ -82,7 +88,7 @@ void cs_op_sts_microstepper(cs2010 *cs) {
         break;
     case 3:
     default:
-        cs->mem.ram[cs->reg.mar] = cs->reg.mdr;
+        cs_op_ram_set(cs, cs->reg.mar, cs->reg.mdr);
         cs_fetch(cs);
         break;
     }
@@ -116,7 +122,7 @@ void cs_op_lds_microstepper(cs2010 *cs) {
 }
 
 void cs_op_call_stepper(cs2010 *cs) {
-    cs->mem.ram[cs->reg.sp--] = cs->reg.pc;
+    cs_op_ram_set(cs, cs->reg.sp--, cs->reg.pc);
     cs->reg.pc = CS_GET_ARG_B(cs->reg.ir);
     cs_fetch(cs);
 }
@@ -135,7 +141,7 @@ void cs_op_call_microstepper(cs2010 *cs) {
     case 2:
     default:
         cs->reg.pc = cs->reg.ac;
-        cs->mem.ram[cs->reg.mar] = cs->reg.mdr;
+        cs_op_ram_set(cs, cs->reg.mar, cs->reg.mdr);
         cs_microfetch(cs);
         break;
     }

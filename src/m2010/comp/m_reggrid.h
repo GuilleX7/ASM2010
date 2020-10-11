@@ -20,9 +20,12 @@ enum m_comp_reggrid_reg_idx {
     M_COMP_REGGRID_IR,
     /* Bar = 12 */
     M_COMP_REGGRID_AC = 13,
-    M_COMP_REGGRID_SR,
-    /* Bar = 15 */
-    M_COMP_REGGRID_MDR = 16,
+    M_COMP_REGGRID_SR_V,
+    M_COMP_REGGRID_SR_N,
+    M_COMP_REGGRID_SR_Z,
+    M_COMP_REGGRID_SR_C,
+    /* Bar = 18 */
+    M_COMP_REGGRID_MDR = 19,
     M_COMP_REGGRID_MAR,
     M_COMP_REGGRID_LENGTH,
 };
@@ -31,7 +34,6 @@ typedef enum m_comp_reggrid_reg_idx m_comp_reggrid_reg_idx;
 struct m_comp_reggrid_reg {
     char *name;
     char *format;
-    size_t value;
     void (*setter)(size_t);
 };
 typedef struct m_comp_reggrid_reg m_comp_reggrid_reg;
@@ -60,6 +62,6 @@ Ihandle *m_comp_reggrid_get_handler(m_comp_reggrid *reggrid);
  * @param idx Index of the register
  * @param value Value to be set
 */
-//void m_comp_reggrid_set(m_comp_reggrid *reggrid, m_comp_reggrid_reg_idx reg, size_t value);
+void m_comp_reggrid_set(m_comp_reggrid *reggrid, m_comp_reggrid_reg_idx reg, size_t value);
 
 #endif /* M_COMP_REGGRID_H */

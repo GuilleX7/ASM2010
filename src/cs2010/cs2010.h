@@ -23,6 +23,8 @@ struct cs2010 {
     cs_registers reg;
     uint8_t microop;
     bool stopped;
+    bool has_ram_changed;
+    size_t ram_change_address;
 };
 typedef struct cs2010 cs2010;
 

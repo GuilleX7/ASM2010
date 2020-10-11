@@ -80,8 +80,8 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence
     gridbox = m_comp_romgrid_get_handler(romgrid);
     element_number = GET_ROWS_SIZE(IupGetChildCount(gridbox));
     if (index < element_number) {
-        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index)), "TITLE", UINT8_HEX_FORMAT, index);
-        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 1), "TITLE", UINT16_HEX_FORMAT, sentence);
+        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index)), "TITLE", HEX8_FORMAT, index);
+        IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 1), "TITLE", HEX16_FORMAT, sentence);
         IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 2), "TITLE", "%s", disassembly);
         IupRefresh(gridbox);
     } else {
@@ -92,7 +92,7 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence
             IupMap(label_sentence);
             IupAppend(gridbox, (label_disassembly = IupLabel(CONTENT_UNKNOWN)));
             IupMap(label_disassembly);
-            IupSetfAttribute(label_idx, "TITLE", UINT8_HEX_FORMAT, i);
+            IupSetfAttribute(label_idx, "TITLE", HEX8_FORMAT, i);
         }
 
         IupAppend(gridbox, (label_idx = IupLabel("")));
@@ -101,8 +101,8 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence
         IupMap(label_sentence);
         IupAppend(gridbox, (label_disassembly = IupLabel("")));
         IupMap(label_disassembly);
-        IupSetfAttribute(label_idx, "TITLE", UINT8_HEX_FORMAT, index);
-        IupSetfAttribute(label_sentence, "TITLE", UINT16_HEX_FORMAT, sentence);
+        IupSetfAttribute(label_idx, "TITLE", HEX8_FORMAT, index);
+        IupSetfAttribute(label_sentence, "TITLE", HEX16_FORMAT, sentence);
         IupSetfAttribute(label_disassembly, "TITLE", "%s", disassembly);
         IupRefresh(gridbox);
     }

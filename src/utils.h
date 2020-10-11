@@ -30,10 +30,12 @@ digits++;\
 #  define PRI_SIZET "zu"
 #endif /* _WIN32 */
 
-#define UINT8_HEX_FORMAT "%02X"
-#define UINT16_HEX_FORMAT "%04X"
-#define UINT32_HEX_FORMAT "%08X"
-#define UINT64_HEX_FORMAT "%016X"
+#define BOOLEAN_FORMAT "%u"
+#define HEX4_FORMAT "%01X"
+#define HEX8_FORMAT "%02X"
+#define HEX16_FORMAT "%04X"
+#define HEX32_FORMAT "%08X"
+#define HEX64_FORMAT "%016X"
 
 /**
  * @brief Saves the given text to a file
