@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <iup/iup.h>
 
@@ -49,8 +50,7 @@ int check_machine_running() {
 
 void update_machine_ui(cs2010 *cs) {
 	m_comp_romgrid_set_active(&rom_gridbox, cs->reg.pc - 1);
-	uint8_t ram_ad = cs->last_ram_change_address & 0xF0;
-	m_comp_ramgrid_set(&ram_gridbox, ram_ad, &cs->mem.ram[ram_ad]);
+	m_comp_ramgrid_set_all(&ram_gridbox, cs->mem.ram);
 	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R0, cs->reg.r0);
 	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R1, cs->reg.r1);
 	m_comp_reggrid_set(&reg_gridbox, M_COMP_REGGRID_R2, cs->reg.r2);
@@ -103,10 +103,9 @@ bool open_machine_code_file(char *filepath, cs2010 *cs) {
 				free(disassembly);
 			}
 		}
-
 		is_cs_ready = true;
+		cs_fetch(cs);
 		update_machine_ui(cs);
-		
 		return true;
 	}
 
@@ -120,7 +119,7 @@ int open_machine_code_file_cb(Ihandle *self) {
 
 	IupSetAttribute(dlg, "DIALOGTYPE", "OPEN");
 	IupSetAttribute(dlg, "TITLE", "Open a CS2010 machine code file");
-	IupSetAttribute(dlg, "EXTFILTER", "CS2010 hexadecimal files|*.hex|CS2010 binary files|*.bin|All files|*.*|");
+	IupSetAttribute(dlg, "EXTFILTER", "All files|*.*|");
 	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
 	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
 	if (IupGetInt(dlg, "STATUS") != -1) {
@@ -133,7 +132,49 @@ int open_machine_code_file_cb(Ihandle *self) {
 	return IUP_IGNORE;
 }
 
-int save_dissasembled_code_file_cb(Ihandle *self) {
+static bool save_disassembled_code_file(char const *filepath) {
+	FILE *file = { 0 };
+	size_t sentence_size;
+	if (!is_cs_ready) {
+		return false;
+	}
+	file = fopen(filepath, "w");
+	if (!file) {
+		return false;
+	}
+
+	sentence_size = m_comp_romgrid_get_sentence_count(&rom_gridbox);
+	for (int i = 0; i < sentence_size; i++) {
+		if (fputs(m_comp_romgrid_get_disassembly(&rom_gridbox, i), file) < 0 ||
+			fputc('\n', file) != '\n') {
+			fclose(file);
+			return false;
+		}
+	}
+
+	fclose(file);
+	return true;
+}
+
+int save_disassembled_code_file_cb(Ihandle *self) {
+	Ihandle *main_window = IupGetDialog(self);
+	Ihandle *dlg = IupFileDlg();
+	char *file = { 0 };
+
+	IupSetAttribute(dlg, "DIALOGTYPE", "SAVE");
+	IupSetAttribute(dlg, "EXTFILTER", "Assembly files|*.asm|All files|*.*|");
+	IupSetAttribute(dlg, "EXTDEFAULT", "asm");
+	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
+
+	IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
+	if (IupGetInt(dlg, "STATUS") != -1) {
+		file = IupGetAttribute(dlg, "VALUE");
+		if (!save_disassembled_code_file(file)) {
+			IupMessagef("Error", "Couldn't save the file %s", file);
+		}
+	}
+
+	IupDestroy(dlg);
 	return IUP_DEFAULT;
 }
 
@@ -170,6 +211,15 @@ int stop_clock_cb(Ihandle *self) {
 }
 
 int reset_all_simulation_cb(Ihandle *self) {
+	if (!is_cs_ready) {
+		return IUP_DEFAULT;
+	}
+	
+	cs_reset_registers(cs);
+	cs_clear_memory(cs, CS_CLEAR_RAM);
+	cs_soft_reset(cs);
+	cs_fetch(cs);
+	update_machine_ui(cs);
 	return IUP_DEFAULT;
 }
 
@@ -213,7 +263,7 @@ int main(int argc, char **argv) {
 	open_machine_code_file_item = IupItem("Open machine code file\tCTRL+O", 0);
 	IupSetCallback(open_machine_code_file_item, IUP_ACTION, (Icallback) open_machine_code_file_cb);
 	save_dissasembled_code_file_item = IupItem("Save dissasembled code file\tCTRL+S", 0);
-	IupSetCallback(save_dissasembled_code_file_item, IUP_ACTION, (Icallback) save_dissasembled_code_file_cb);
+	IupSetCallback(save_dissasembled_code_file_item, IUP_ACTION, (Icallback) save_disassembled_code_file_cb);
 	exit_item = IupItem("Exit\tCTRL+Q", 0);
 	IupSetCallback(exit_item, IUP_ACTION, (Icallback) exit_cb);
 	file_submenu = IupSubmenu("File",
@@ -322,9 +372,12 @@ int main(int argc, char **argv) {
 
 	IupSetAttributeHandle(main_window, IUP_MENU, menu);
 	IupSetAttribute(main_window, IUP_TITLE, PROGRAM_NAME);
+	IupSetCallback(main_window, "K_cO", (Icallback) open_machine_code_file_cb);
+	IupSetCallback(main_window, "K_cS", (Icallback) save_disassembled_code_file_cb);
 	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
 	IupSetCallback(main_window, "K_cI", (Icallback) step_instruction_cb);
 	IupSetCallback(main_window, "K_cM", (Icallback) step_microinstruction_cb);
+	IupSetCallback(main_window, "K_cR", (Icallback) reset_all_simulation_cb);
 	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
 
 	cs = malloc(sizeof * cs);

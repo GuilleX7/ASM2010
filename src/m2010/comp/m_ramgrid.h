@@ -25,12 +25,19 @@ m_comp_ramgrid m_comp_ramgrid_create(void);
 Ihandle *m_comp_ramgrid_get_handler(m_comp_ramgrid *ramgrid);
 
 /**
- * @brief Sets a given address of the RAM to a value
+ * @brief Sets a given row of the RAM
  * @param ramgrid Pointer to the component
- * @param address Address of the row to be set (16 bytes)
- * @param value Values to be set (16 bytes)
+ * @param address Address of the row to be set (NUM_COLS aligned)
+ * @param value Values to be set (NUM_COLS bytes)
 */
-void m_comp_ramgrid_set(m_comp_ramgrid *ramgrid, int address, unsigned char *values);
+void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int address, uint8_t *values);
+
+/**
+ * @brief Sets the entire RAM
+ * @param ramgrid Pointer to the component
+ * @param values Values to be set (RAM_SIZE bytes)
+*/
+void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, uint8_t *values);
 
 /**
  * @brief Sets the entire memory to 0

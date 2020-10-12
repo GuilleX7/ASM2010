@@ -58,11 +58,10 @@ void cs_soft_reset(cs2010 *cs);
 void cs_clear_memory(cs2010 *cs, uint8_t flags);
 
 /**
- * @brief Resets all the registers
+ * @brief Resets all the registers and signals
  * @param cs Pointer to CS2010 structure
- * @param clear_signals Clear registers signals
 */
-void cs_reset_registers(cs2010 *cs, bool clear_signals);
+void cs_reset_registers(cs2010 *cs);
 
 /**
  * @brief Loads and checks a given machine code for valid instructions.

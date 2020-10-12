@@ -41,7 +41,7 @@ void cs_hard_reset(cs2010 *cs) {
     }
 
     cs_clear_memory(cs, CS_CLEAR_RAM | CS_CLEAR_ROM);
-    cs_reset_registers(cs, true);
+    cs_reset_registers(cs);
     cs->stopped = false;
     cs->last_ram_change_address = 0;
 }
@@ -70,7 +70,7 @@ void cs_clear_memory(cs2010 *cs, uint8_t flags) {
     }
 }
 
-void cs_reset_registers(cs2010 *cs, bool clear_signals) {
+void cs_reset_registers(cs2010 *cs) {
     if (!cs) {
         return;
     }
@@ -90,10 +90,8 @@ void cs_reset_registers(cs2010 *cs, bool clear_signals) {
     cs->reg.r7 = 0;
     cs->reg.sr = 0;
     cs->reg.sp = UINT8_MAX;
-    if (clear_signals) {
-        cs->reg.signals = CS_SIGNALS_NONE;
-    }
-}
+    cs->reg.signals = CS_SIGNALS_NONE;
+ }
 
 int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length) {
     if (!cs || !sentences) {
@@ -111,7 +109,6 @@ int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length) 
         cs->mem.rom[i] = sentences[i];
     }
 
-    cs_fetch(cs);
     return CS_SUCCESS;
 }
 

@@ -56,4 +56,19 @@ void m_comp_romgrid_set_active(m_comp_romgrid *romgrid, int index);
 */
 void m_comp_romgrid_clear_active(m_comp_romgrid *romgrid);
 
+/**
+ * @brief Get the sentence count
+ * @param romgrid Pointer to the component
+ * @return Sentence count
+*/
+int m_comp_romgrid_get_sentence_count(m_comp_romgrid *romgrid);
+
+/**
+ * @brief Gets the matching disassembly line
+ * @param romgrid Pointer to the component
+ * @param index Index of the sentence
+ * @return Pointer to the disassembly line
+*/
+char const *m_comp_romgrid_get_disassembly(m_comp_romgrid *romgrid, int index);
+
 #endif /* M_ROMGRID_H */

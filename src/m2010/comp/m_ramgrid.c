@@ -6,6 +6,7 @@
 
 #define NUM_COLS 16
 #define NUM_ROWS 16
+#define RAM_SIZE (NUM_COLS * NUM_ROWS)
 
 #define GET_ROW_IDX(address) (address / NUM_COLS * 2 + 1)
 
@@ -47,7 +48,7 @@ Ihandle *m_comp_ramgrid_get_handler(m_comp_ramgrid *ramgrid) {
     return ramgrid->handler;
 }
 
-void m_comp_ramgrid_set(m_comp_ramgrid *ramgrid, int row_address, unsigned char *values) {
+void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int row_address, uint8_t *values) {
     if (!ramgrid || row_address > (NUM_ROWS * NUM_COLS) - 1) {
         return;
     }
@@ -57,12 +58,26 @@ void m_comp_ramgrid_set(m_comp_ramgrid *ramgrid, int row_address, unsigned char 
         values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
 }
 
+void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, uint8_t *values) {
+    int idx;
+    if (!ramgrid) {
+        return;
+    }
+
+    for (int i = 0; i < RAM_SIZE; i += 16) {
+        idx = GET_ROW_IDX(i);
+        IupSetStrf(IupGetChild(m_comp_ramgrid_get_handler(ramgrid), idx), IUP_TITLE, CONTENT_FORMAT,
+            values[i], values[i + 1], values[i + 2], values[i + 3], values[i + 4], values[i + 5], values[i + 6], values[i + 7],
+            values[i + 8], values[i + 9], values[i + 10], values[i + 11], values[i + 12], values[i + 13], values[i + 14], values[i + 15]);
+    }
+}
+
 void m_comp_ramgrid_clear(m_comp_ramgrid *ramgrid) {
     if (!ramgrid) {
         return;
     }
     unsigned char zero[NUM_COLS] = { 0 };
     for (int i = 0; i < NUM_ROWS; i++) {
-        m_comp_ramgrid_set(ramgrid, i * NUM_COLS, zero);
+        m_comp_ramgrid_set_row(ramgrid, i * NUM_COLS, zero);
     }
 }

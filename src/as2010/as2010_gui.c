@@ -28,8 +28,9 @@ static int actual_export_format = 0;
 static bool dirty = false;
 
 /* They just needed declaration */
+static int saveas_item_cb(Ihandle *self);
 static int save_item_cb(Ihandle *self);
-static void mark_actual_source(Ihandle *window, char const *filepath);
+static bool mark_actual_source(Ihandle *window, char const *filepath);
 static void clear_actual(Ihandle *window);
 
 /**
@@ -62,13 +63,13 @@ static bool open_file(Ihandle *window, char const *filepath) {
  *              whose title will be changed
  * @param file Path to the file
 */
-static void mark_actual_source(Ihandle *window, char const *filepath) {
+static bool mark_actual_source(Ihandle *window, char const *filepath) {
 	if (actual_source_filepath) free(actual_source_filepath);
 	actual_source_filepath = malloc(strlen(filepath) + 1);
-	if (!actual_source_filepath) return;
+	if (!actual_source_filepath) return false;
 	strcpy(actual_source_filepath, filepath);
-
 	IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PROGRAM_NAME);
+	return true;
 }
 
 /**
@@ -79,13 +80,13 @@ static void mark_actual_source(Ihandle *window, char const *filepath) {
  * @param file Path to the file
  * @param export_format Exporting format for the file
 */
-static void mark_actual_export(char const *filepath, int export_format) {
+static bool mark_actual_export(char const *filepath, int export_format) {
 	if (actual_export_filepath) free(actual_export_filepath);
 	actual_export_filepath = malloc(strlen(filepath) + 1);
-	if (!actual_export_filepath) return;
+	if (!actual_export_filepath) return false;
 	strcpy(actual_export_filepath, filepath);
-
 	actual_export_format = export_format;
+	return true;
 }
 
 /**
@@ -262,17 +263,15 @@ static int saveas_item_cb(Ihandle *self) {
 	IupSetAttribute(dlg, "EXTFILTER", "Assembly files|*.asm|All files|*.*|");
 	IupSetAttribute(dlg, "EXTDEFAULT", "asm");
 	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
-	if (actual_source_filepath)
+	if (actual_source_filepath) {
 		IupSetStrAttribute(dlg, "FILE", actual_source_filepath);
+	}
 
 	IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
-
 	if (IupGetInt(dlg, "STATUS") != -1) {
 		file = IupGetAttribute(dlg, "VALUE");
-
-		if (save_file(file, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"))) {
-			dirty = false;
-			mark_actual_source(main_window, file);
+		if (mark_actual_source(main_window, file)) {
+			save_item_cb(self);
 		}
 	}
 
@@ -283,9 +282,12 @@ static int saveas_item_cb(Ihandle *self) {
 static int save_item_cb(Ihandle *self) {
 	Ihandle *main_window = IupGetDialog(self);
 	if (actual_source_filepath) {
-		save_file(actual_source_filepath, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"));
-		IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PROGRAM_NAME);
-		dirty = false;
+		if (save_file(actual_source_filepath, IupGetAttribute(IupGetDialogChild(main_window, "SOURCE_MULTITEXT"), "VALUE"))) {
+			IupSetStrf(main_window, "TITLE", "%s - %s", get_file_name(actual_source_filepath), PROGRAM_NAME);
+			dirty = false;
+		} else {
+			IupMessagef("Error", "Couldn't save file %s", actual_source_filepath);
+		}
 	} else {
 		saveas_item_cb(self);
 	}

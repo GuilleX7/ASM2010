@@ -83,7 +83,10 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, uint16_t conten
 
     gridbox = m_comp_romgrid_get_handler(romgrid);
     element_number = GET_ROWS_SIZE(IupGetChildCount(gridbox));
-    if (address < element_number) {
+
+    if (address < 0) {
+        return;
+    } else if (address < element_number) {
         IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address)), "TITLE", ADDRESS_FORMAT, address);
         IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address) + 1), "TITLE", CONTENT_FORMAT, content);
         IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address) + 2), "TITLE", "%s", disassembly);
@@ -119,6 +122,10 @@ void m_comp_romgrid_set_active(m_comp_romgrid *romgrid, int index) {
     }
     gridbox = m_comp_romgrid_get_handler(romgrid);
 
+    if (index < 0 || index > GET_ROWS_SIZE(IupGetChildCount(gridbox)) - 1) {
+        return;
+    }
+
     if (romgrid->any_row_active) {
         IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row)), "FONTSTYLE", "");
         IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row) + 1), "FONTSTYLE", "");
@@ -148,4 +155,28 @@ void m_comp_romgrid_clear_active(m_comp_romgrid *romgrid) {
         IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row) + 2), "FONTSTYLE", "");
         romgrid->any_row_active = false;
     }
+}
+
+int m_comp_romgrid_get_sentence_count(m_comp_romgrid *romgrid) {
+    Ihandle *gridbox = { 0 };
+    if (!romgrid) {
+        return 0;
+    }
+    gridbox = m_comp_romgrid_get_handler(romgrid);
+
+    return GET_ROWS_SIZE(IupGetChildCount(gridbox));
+}
+
+char const *m_comp_romgrid_get_disassembly(m_comp_romgrid *romgrid, int index) {
+    Ihandle *gridbox = { 0 };
+    if (!romgrid) {
+        return 0;
+    }
+    gridbox = m_comp_romgrid_get_handler(romgrid);
+
+    if (index < 0 || index > GET_ROWS_SIZE(IupGetChildCount(gridbox) - 1)) {
+        return 0;
+    }
+
+    return IupGetAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 2), IUP_TITLE);
 }
