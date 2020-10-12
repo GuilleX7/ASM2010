@@ -4,7 +4,6 @@
 #define AS_PARSE_H
 
 #include <stddef.h>
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "../cs2010/cs_instructions.h"
@@ -33,10 +32,10 @@
 
 struct as_parse_argument {
 	union {
-		uint8_t inm;
+		size_t inm;
 		char *equ_key;
 	} value;
-	uint8_t type;
+	int type;
 };
 typedef struct as_parse_argument as_parse_argument;
 
@@ -65,7 +64,7 @@ struct as_parse_info {
 	/** @brief Array containing all valid parsed sentences */
 	as_parse_sentence *sentences;
 	/** @brief Array containing assembled machine code */
-	uint16_t *machine_code;
+	unsigned short *machine_code;
 };
 typedef struct as_parse_info as_parse_info;
 
@@ -113,6 +112,6 @@ void as_parse_free(as_parse_info *pinfo);
  * @return Pointer to string containing the dissasembly if success,
  *		a null pointer otherwise (invalid binary code)
 */
-char *as_disassemble_sentence(uint16_t raw_sentence);
+char *as_disassemble_sentence(unsigned short raw_sentence);
 
 #endif /* AS_PARSE_H */

@@ -30,14 +30,14 @@ Ihandle *m_comp_ramgrid_get_handler(m_comp_ramgrid *ramgrid);
  * @param address Address of the row to be set (NUM_COLS aligned)
  * @param value Values to be set (NUM_COLS bytes)
 */
-void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int address, uint8_t *values);
+void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int address, unsigned char *values);
 
 /**
  * @brief Sets the entire RAM
  * @param ramgrid Pointer to the component
  * @param values Values to be set (RAM_SIZE bytes)
 */
-void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, uint8_t *values);
+void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, unsigned char *values);
 
 /**
  * @brief Sets the entire memory to 0

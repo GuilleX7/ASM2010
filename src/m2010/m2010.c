@@ -73,7 +73,7 @@ void update_machine_ui(cs2010 *cs) {
 }
 
 bool open_machine_code_file(char *filepath, cs2010 *cs) {
-	uint16_t *code = { 0 };
+	unsigned short *code = { 0 };
 	size_t code_size = 0;
 	int mcs_format = 0;
 	char *disassembly = { 0 };
@@ -158,9 +158,14 @@ static bool save_disassembled_code_file(char const *filepath) {
 
 int save_disassembled_code_file_cb(Ihandle *self) {
 	Ihandle *main_window = IupGetDialog(self);
-	Ihandle *dlg = IupFileDlg();
+	Ihandle *dlg;
 	char *file = { 0 };
 
+	if (!is_cs_ready) {
+		return IUP_DEFAULT;
+	}
+
+	dlg = IupFileDlg();
 	IupSetAttribute(dlg, "DIALOGTYPE", "SAVE");
 	IupSetAttribute(dlg, "EXTFILTER", "Assembly files|*.asm|All files|*.*|");
 	IupSetAttribute(dlg, "EXTDEFAULT", "asm");

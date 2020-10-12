@@ -334,11 +334,11 @@ cs_instruction const *cs_ins_search_by_name(char *name) {
     return result;
 }
 
-cs_instruction const *cs_ins_get_from_sentence(uint16_t sentence) {
-    uint8_t opcode = CS_GET_OPCODE(sentence);
+cs_instruction const *cs_ins_get_from_sentence(unsigned short sentence) {
+    unsigned char opcode = CS_GET_OPCODE(sentence);
     cs_instruction const *cs_instruction = &cs_ins_list[opcode];
     /* Check for BR-like instruction */
-    uint8_t jmp_condition = 0;
+    unsigned char jmp_condition = 0;
     if (opcode == cs_ins_list[CS_INS_I_BRXX].opcode) {
         jmp_condition = CS_GET_JMP_CONDITION(sentence);
         switch (jmp_condition) {
@@ -359,7 +359,7 @@ cs_instruction const *cs_ins_get_from_sentence(uint16_t sentence) {
     return cs_instruction;
 }
 
-uint8_t cs_ins_get_jmp_condition(cs_instruction const *const cs_instruction) {
+unsigned char cs_ins_get_jmp_condition(cs_instruction const *const cs_instruction) {
     switch (cs_instruction->index) {
     case CS_INS_I_BRCS:
     case CS_INS_I_BRLO:

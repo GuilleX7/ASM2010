@@ -5,7 +5,7 @@
 #include "cs_instructions.h"
 #include "cs_op.h"
 
-inline void cs_op_ram_set(cs2010 *cs, uint8_t address, uint8_t value) {
+inline void cs_op_ram_set(cs2010 *cs, unsigned char address, unsigned char value) {
     cs->mem.ram[address] = value;
     cs->last_ram_change_address = address;
 }
@@ -239,16 +239,16 @@ void cs_op_jmp_microstepper(cs2010 *cs) {
     }
 }
 
-inline void cs_op_set_arithmetic_flags(cs2010 *cs, uint8_t a, uint8_t b, uint8_t c) {
+inline void cs_op_set_arithmetic_flags(cs2010 *cs, unsigned char a, unsigned char b, unsigned char c) {
     /* bit 76543210
     SR  =  0000VNZC
     V: 2's complement overflow
     N: negative sign
     Z: zero
     C: carry (unsigned overflow) */
-    uint8_t a_7 = a >> 7;
-    uint8_t b_7 = b >> 7;
-    uint8_t c_7 = c >> 7;
+    unsigned char a_7 = a >> 7;
+    unsigned char b_7 = b >> 7;
+    unsigned char c_7 = c >> 7;
     cs->reg.sr =
         ((!(a_7 ^ b_7)) & (a_7 ^ c_7)) << 3 |   /* sign(a) == sign(b) AND sign(a) != sign(c) */
         (c_7) << 2 |                            /* (c >> 7) << 2 */
@@ -257,18 +257,18 @@ inline void cs_op_set_arithmetic_flags(cs2010 *cs, uint8_t a, uint8_t b, uint8_t
 }
 
 void cs_op_add_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t *b = cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-    uint8_t c = *a + *b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char *b = cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+    unsigned char c = *a + *b;
     cs_op_set_arithmetic_flags(cs, *a, *b, c);
     *a = c;
     cs_fetch(cs);
 }
 
 void cs_op_add_microstepper(cs2010 *cs) {
-    uint8_t *a;
-    uint8_t *b;
-    uint8_t c;
+    unsigned char *a;
+    unsigned char *b;
+    unsigned char c;
 
     switch (cs->microop) {
     case 0:
@@ -287,18 +287,18 @@ void cs_op_add_microstepper(cs2010 *cs) {
 }
 
 void cs_op_sub_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-    uint8_t c = *a + b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+    unsigned char c = *a + b;
     cs_op_set_arithmetic_flags(cs, *a, b, c);
     *a = c;
     cs_fetch(cs);
 }
 
 void cs_op_sub_microstepper(cs2010 *cs) {
-    uint8_t *a;
-    uint8_t b;
-    uint8_t c;
+    unsigned char *a;
+    unsigned char b;
+    unsigned char c;
 
     switch (cs->microop) {
     case 0:
@@ -317,9 +317,9 @@ void cs_op_sub_microstepper(cs2010 *cs) {
 }
 
 void cs_op_cp_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
-    uint8_t c = *a + b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char b = -*cs->reg.regfile[CS_GET_REG_B(cs->reg.ir)];
+    unsigned char c = *a + b;
     cs_op_set_arithmetic_flags(cs, *a, b, c);
     cs_fetch(cs);
 }
@@ -353,7 +353,7 @@ void cs_op_sec_stepper(cs2010 *cs) {
     cs_fetch(cs);
 }
 
-inline void cs_op_set_ror_flags(cs2010 *cs, uint8_t r, uint8_t r_7, uint8_t r_0, uint8_t c_in) {
+inline void cs_op_set_ror_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_0, unsigned char c_in) {
     cs->reg.sr =
         (r_7 ^ c_in) << 3 |
         c_in << 2 | /* same as !!(r & (1 << 7)) << 2 */
@@ -362,20 +362,20 @@ inline void cs_op_set_ror_flags(cs2010 *cs, uint8_t r, uint8_t r_7, uint8_t r_0,
 }
 
 void cs_op_ror_stepper(cs2010 *cs) {
-    uint8_t *r = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t r_7 = *r >> 7;
-    uint8_t r_0 = *r & 1u;
-    uint8_t c_in = !!(cs->reg.sr & CS_SR_C);
+    unsigned char *r = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char r_7 = *r >> 7;
+    unsigned char r_0 = *r & 1u;
+    unsigned char c_in = !!(cs->reg.sr & CS_SR_C);
     *r = (*r >> 1) | (c_in << 7);
     cs_op_set_ror_flags(cs, *r, r_7, r_0, c_in);
     cs_fetch(cs);
 }
 
 void cs_op_ror_microstepper(cs2010 *cs) {
-    uint8_t *r;
-    uint8_t r_7;
-    uint8_t r_0;
-    uint8_t c_in;
+    unsigned char *r;
+    unsigned char r_7;
+    unsigned char r_0;
+    unsigned char c_in;
 
     switch (cs->microop) {
     case 0:
@@ -395,7 +395,7 @@ void cs_op_ror_microstepper(cs2010 *cs) {
     }
 }
 
-inline void cs_op_set_rol_flags(cs2010 *cs, uint8_t r, uint8_t r_7, uint8_t r_6, uint8_t r_0, uint8_t c_in) {
+inline void cs_op_set_rol_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_6, unsigned char r_0, unsigned char c_in) {
     cs->reg.sr =
         (r_7 ^ r_6) << 3 |
         r_6 << 2 | /* same as !!(r & (1 << 6)) << 2 */
@@ -404,22 +404,22 @@ inline void cs_op_set_rol_flags(cs2010 *cs, uint8_t r, uint8_t r_7, uint8_t r_6,
 }
 
 void cs_op_rol_stepper(cs2010 *cs) {
-    uint8_t *r = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t r_7 = *r >> 7;
-    uint8_t r_6 = !!(*r & (1u << 6));
-    uint8_t r_0 = *r & 1u;
-    uint8_t c_in = !!(cs->reg.sr & CS_SR_C);
+    unsigned char *r = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char r_7 = *r >> 7;
+    unsigned char r_6 = !!(*r & (1u << 6));
+    unsigned char r_0 = *r & 1u;
+    unsigned char c_in = !!(cs->reg.sr & CS_SR_C);
     *r = (*r << 1) | c_in;
     cs_op_set_rol_flags(cs, *r, r_7, r_6, r_0, c_in);
     cs_fetch(cs);
 }
 
 void cs_op_rol_microstepper(cs2010 *cs) {
-    uint8_t *r;
-    uint8_t r_7;
-    uint8_t r_6;
-    uint8_t r_0;
-    uint8_t c_in;
+    unsigned char *r;
+    unsigned char r_7;
+    unsigned char r_6;
+    unsigned char r_0;
+    unsigned char c_in;
 
     switch (cs->microop) {
     case 0:
@@ -445,18 +445,18 @@ void cs_op_stop_stepper(cs2010 *cs) {
 }
 
 void cs_op_addi_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t b = CS_GET_ARG_B(cs->reg.ir);
-    uint8_t c = *a + b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char b = CS_GET_ARG_B(cs->reg.ir);
+    unsigned char c = *a + b;
     cs_op_set_arithmetic_flags(cs, *a, b, c);
     *a = c;
     cs_fetch(cs);
 }
 
 void cs_op_addi_microstepper(cs2010 *cs) {
-    uint8_t *a;
-    uint8_t b;
-    uint8_t c;
+    unsigned char *a;
+    unsigned char b;
+    unsigned char c;
 
     switch (cs->microop) {
     case 0:
@@ -476,18 +476,18 @@ void cs_op_addi_microstepper(cs2010 *cs) {
 }
 
 void cs_op_subi_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t b = CS_GET_ARG_B(cs->reg.ir);
-    uint8_t c = *a - b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char b = CS_GET_ARG_B(cs->reg.ir);
+    unsigned char c = *a - b;
     cs_op_set_arithmetic_flags(cs, *a, b, c);
     *a = c;
     cs_fetch(cs);
 }
 
 void cs_op_subi_microstepper(cs2010 *cs) {
-    uint8_t *a;
-    uint8_t b;
-    uint8_t c;
+    unsigned char *a;
+    unsigned char b;
+    unsigned char c;
 
     switch (cs->microop) {
     case 0:
@@ -507,9 +507,9 @@ void cs_op_subi_microstepper(cs2010 *cs) {
 }
 
 void cs_op_cpi_stepper(cs2010 *cs) {
-    uint8_t *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
-    uint8_t b = CS_GET_ARG_B(cs->reg.ir);
-    uint8_t c = *a - b;
+    unsigned char *a = cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)];
+    unsigned char b = CS_GET_ARG_B(cs->reg.ir);
+    unsigned char c = *a - b;
     cs_op_set_arithmetic_flags(cs, *a, b, c);
     cs_fetch(cs);
 }

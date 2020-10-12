@@ -130,7 +130,7 @@ static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
     }
 
     int status;
-    uint8_t value = retrieve_value(lineptr, &status, CS_INS_INM_MAX_VALUE, search_line_end);
+    size_t value = retrieve_value(lineptr, &status, CS_INS_INM_MAX_VALUE, search_line_end);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
         trace("[Error] invalid value specified for equ identifier '%s' at line %" PRI_SIZET "\n", identifier, pinfo->parsing_line_index);
@@ -165,7 +165,7 @@ static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
            PARSE_LINE_END if a correct opcode was found,
  *         PARSE_LINE_ERROR if parsing should be aborted
 */
-static uint8_t search_opcode(as_parse_info *pinfo, char const **lineptr) {
+static unsigned char search_opcode(as_parse_info *pinfo, char const **lineptr) {
     if (strncmp(*lineptr, OPCODE_KEYWORD, OPCODE_KEYWORD_LENGTH)) return PARSE_LINE_KEEP;
     (*lineptr) += OPCODE_KEYWORD_LENGTH;
 
@@ -209,7 +209,7 @@ static uint8_t search_opcode(as_parse_info *pinfo, char const **lineptr) {
         return PARSE_LINE_ERROR;
     }
 
-    uint16_t raw_sentence = CS_GET_RAW_SENTENCE(lsbyte.value.inm, msbyte.value.inm);
+    unsigned short raw_sentence = CS_GET_RAW_SENTENCE(lsbyte.value.inm, msbyte.value.inm);
     as_parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
     sentence->instruction = cs_ins_get_from_sentence(raw_sentence);
     if (!sentence->instruction) {
@@ -274,7 +274,7 @@ static int search_line_equ(as_parse_info *pinfo, char const **lineptr) {
 */
 static as_parse_argument search_register(char const **lineptr, bool allow_indirect_syntax) {
     as_parse_argument register_argument = { .type = AS_ARGUMENT_TYPE_INVALID };
-    uint8_t register_number = 0;
+    size_t register_number = 0;
     int status = { 0 };
     bool indirect = false;
 
@@ -498,7 +498,7 @@ static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
     }
     free(instruction_name);
 
-    uint8_t result = { 0 };
+    unsigned char result = { 0 };
     switch (sentence->instruction->format) {
     case CS_INS_FORMAT_A:
         result = parse_instruction_fa(pinfo, lineptr);
@@ -657,9 +657,9 @@ int as_parse_line(as_parse_info *pinfo, char const *line) {
 
 int as_parse_assemble(as_parse_info *pinfo) {
     as_parse_sentence *sentence = { 0 };
-    uint16_t *bincode = { 0 };
-    uint8_t *value_ptr = { 0 };
-    uint8_t value = 0;
+    unsigned short *bincode = { 0 };
+    size_t *value_ptr = { 0 };
+    size_t value = 0;
 
     trace_log_clear(&pinfo->log);
 
@@ -672,7 +672,7 @@ int as_parse_assemble(as_parse_info *pinfo) {
         sentence = &pinfo->sentences[i];
         bincode = &pinfo->machine_code[i];
 
-        *bincode = 0 | ((unsigned) sentence->instruction->opcode << 11);
+        *bincode = ((unsigned short) sentence->instruction->opcode << 11);
 
         if (sentence->arg_a.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_a.value.equ_key);
@@ -686,7 +686,7 @@ int as_parse_assemble(as_parse_info *pinfo) {
         } else {
             value = sentence->arg_a.value.inm;
         }
-        *bincode |= ((unsigned) value & 0x1F) << 8;
+        *bincode |= ((unsigned short) value & 0x1Fu) << 8;
 
         if (sentence->arg_b.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_b.value.equ_key);
@@ -700,16 +700,16 @@ int as_parse_assemble(as_parse_info *pinfo) {
         } else {
             value = sentence->arg_b.value.inm;
         }
-        *bincode |= (unsigned) value;
+        *bincode |= (unsigned short) value & 0xFF;
     }
 
     return AS_PARSE_OK;
 }
 
-char *as_disassemble_sentence(uint16_t raw_sentence) {
+char *as_disassemble_sentence(unsigned short raw_sentence) {
     cs_instruction const* instruction = cs_ins_get_from_sentence(raw_sentence);
-    uint8_t arg_a = CS_GET_ARG_A(raw_sentence);
-    uint8_t arg_b = CS_GET_ARG_B(raw_sentence);
+    unsigned char arg_a = CS_GET_ARG_A(raw_sentence);
+    unsigned char arg_b = CS_GET_ARG_B(raw_sentence);
     char *disassembly = 0;
     bool valid = true;
     if (!instruction->name) {

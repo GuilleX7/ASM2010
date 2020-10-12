@@ -71,7 +71,7 @@ void m_comp_romgrid_clear(m_comp_romgrid *romgrid) {
     }
 }
 
-void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, uint16_t content, char *disassembly) {
+void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, unsigned short content, char *disassembly) {
     Ihandle *gridbox = { 0 };
     Ihandle *label_address = { 0 };
     Ihandle *label_content = { 0 };

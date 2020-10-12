@@ -4,7 +4,6 @@
 #define CS2010_H
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
 
 #include "cs_memory.h"
@@ -21,7 +20,7 @@
 struct cs2010 {
     cs_memory mem;
     cs_registers reg;
-    uint8_t microop;
+    unsigned char microop;
     bool stopped;
     size_t last_ram_change_address;
 };
@@ -55,7 +54,7 @@ void cs_soft_reset(cs2010 *cs);
  * @param cs Pointer to CS2010 structure
  * @param flags Valid bitmasks are CS_CLEAR_RAM, CS_CLEAR_ROM
 */
-void cs_clear_memory(cs2010 *cs, uint8_t flags);
+void cs_clear_memory(cs2010 *cs, unsigned char flags);
 
 /**
  * @brief Resets all the registers and signals
@@ -74,7 +73,7 @@ void cs_reset_registers(cs2010 *cs);
  *          machine code or
  *          CS_FAILED otherwise
 */
-int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length);
+int cs_load_and_check(cs2010 *cs, unsigned short *sentences, size_t sentences_length);
 
 /**
  * @brief Performs an increment of the microop counter

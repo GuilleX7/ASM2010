@@ -33,7 +33,7 @@ bool save_file(char const *filepath, char const *str) {
 char *read_file(char const *filepath) {
     size_t size;
     char *str;
-    int i;
+    size_t i;
     FILE *file;
 
     if (!filepath) {

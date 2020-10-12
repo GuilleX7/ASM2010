@@ -1,7 +1,5 @@
 /** @file m_siggrid.c */
 
-#include <stdint.h>
-
 #include "../../utils.h"
 
 #include "../../cs2010/cs_registers.h"
@@ -85,7 +83,7 @@ void m_comp_siggrid_set(m_comp_siggrid *siggrid, m_comp_siggrid_signal_idx signa
     IupSetStrf(IupGetChild(m_comp_siggrid_get_handler(siggrid), idx), IUP_TITLE, BOOLEAN_FORMAT, !!value);
 }
 
-void m_comp_siggrid_set_signals(m_comp_siggrid *siggrid, uint32_t signals) {
+void m_comp_siggrid_set_signals(m_comp_siggrid *siggrid, unsigned long signals) {
     Ihandle *gridbox = { 0 };
     int idx;
     if (!siggrid) {

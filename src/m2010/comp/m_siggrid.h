@@ -39,7 +39,7 @@ typedef enum m_comp_siggrid_signal_idx m_comp_siggrid_signal_idx;
 
 struct m_comp_siggrid_signal {
     char *name;
-    uint32_t bitmask;
+    unsigned long bitmask;
 };
 typedef struct m_comp_siggrid_signal m_comp_siggrid_signal;
 
@@ -74,7 +74,7 @@ void m_comp_siggrid_set(m_comp_siggrid *siggrid, m_comp_siggrid_signal_idx signa
  * @param siggrid Pointer to the component
  * @param signals Signals to be set
 */
-void m_comp_siggrid_set_signals(m_comp_siggrid *siggrid, uint32_t signals);
+void m_comp_siggrid_set_signals(m_comp_siggrid *siggrid, unsigned long signals);
 
 /**
  * @brief Sets all the signals to zero

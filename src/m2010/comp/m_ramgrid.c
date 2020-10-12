@@ -48,7 +48,7 @@ Ihandle *m_comp_ramgrid_get_handler(m_comp_ramgrid *ramgrid) {
     return ramgrid->handler;
 }
 
-void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int row_address, uint8_t *values) {
+void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int row_address, unsigned char *values) {
     if (!ramgrid || row_address > (NUM_ROWS * NUM_COLS) - 1) {
         return;
     }
@@ -58,7 +58,7 @@ void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int row_address, uint8_t *v
         values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
 }
 
-void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, uint8_t *values) {
+void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, unsigned char *values) {
     int idx;
     if (!ramgrid) {
         return;

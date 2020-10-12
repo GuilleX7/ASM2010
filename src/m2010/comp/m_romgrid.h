@@ -3,7 +3,6 @@
 #ifndef M_ROMGRID_H
 #define M_ROMGRID_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include <iup/iup.h>
@@ -41,7 +40,7 @@ void m_comp_romgrid_clear(m_comp_romgrid *romgrid);
  * @param sentence Machine code sentence
  * @param dissasembly Dissasembly of the sentence (0 if none)
 */
-void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, uint16_t sentence, char *dissasembly);
+void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int index, unsigned short sentence, char *dissasembly);
 
 /**
  * @brief Sets the given row as active

@@ -3,7 +3,6 @@
 #ifndef CS_INSTRUCTIONS_H
 #define CS_INSTRUCTIONS_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "cs2010.h"
@@ -29,7 +28,7 @@
 #define CS_GET_REG_A(sentence) CS_GET_ARG_A(sentence)
 #define CS_GET_ARG_B(sentence) (sentence & 0xFFu)
 #define CS_GET_REG_B(sentence) (CS_GET_ARG_B(sentence) & 0x7u)
-#define CS_GET_RAW_SENTENCE(lsbyte, msbyte) (((uint16_t) msbyte << 8) + (uint16_t) lsbyte)
+#define CS_GET_RAW_SENTENCE(lsbyte, msbyte) (((unsigned short) msbyte << 8) + (unsigned short) lsbyte)
 
 /** @brief List of instructions' indexes */
 enum cs_instruction_idx {
@@ -69,13 +68,13 @@ typedef enum cs_instruction_idx cs_instruction_idx;
 
 /** @brief CS2010 instruction data */
 struct cs_instruction {
-	uint32_t signals[5];
+	unsigned long signals[5];
 	cs_instruction_idx index;
 	char *name;
 	void (*stepper)(cs2010 *cs);
 	void (*microstepper)(cs2010 *cs);
-	uint8_t opcode;
-	uint8_t format;
+	unsigned char opcode;
+	int format;
 	bool exec;
 };
 typedef struct cs_instruction cs_instruction;
@@ -107,13 +106,13 @@ cs_instruction const *cs_ins_search_by_name(char *name);
  * @param sentence The given sentence where instruction will be looked for
  * @return Pointer to instruction structure if found, null pointer otherwise
 */
-cs_instruction const *cs_ins_get_from_sentence(uint16_t sentence);
+cs_instruction const *cs_ins_get_from_sentence(unsigned short sentence);
 
 /**
  * @brief Returns the corresponding jump condition for a given instruction
  * @param instruction Pointer to given instruction structure
  * @return Jump condition code if any associated, 0 otherwise
 */
-uint8_t cs_ins_get_jmp_condition(cs_instruction const *const instruction);
+unsigned char cs_ins_get_jmp_condition(cs_instruction const *const instruction);
 
 #endif /* CS_INSTRUCTIONS_H */

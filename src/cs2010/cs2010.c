@@ -52,12 +52,12 @@ void cs_soft_reset(cs2010 *cs) {
     }
 
     cs->reg.pc = 0;
-    cs->reg.sp = UINT8_MAX;
+    cs->reg.sp = 0xFF;
     cs->stopped = false;
     cs->last_ram_change_address = 0;
 }
 
-void cs_clear_memory(cs2010 *cs, uint8_t flags) {
+void cs_clear_memory(cs2010 *cs, unsigned char flags) {
     if (!cs) {
         return;
     }
@@ -89,11 +89,11 @@ void cs_reset_registers(cs2010 *cs) {
     cs->reg.r6 = 0;
     cs->reg.r7 = 0;
     cs->reg.sr = 0;
-    cs->reg.sp = UINT8_MAX;
+    cs->reg.sp = 0xFF;
     cs->reg.signals = CS_SIGNALS_NONE;
  }
 
-int cs_load_and_check(cs2010 *cs, uint16_t *sentences, size_t sentences_length) {
+int cs_load_and_check(cs2010 *cs, unsigned short *sentences, size_t sentences_length) {
     if (!cs || !sentences) {
         return CS_FAILED;
     }

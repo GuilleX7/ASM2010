@@ -3,8 +3,6 @@
 #ifndef CS_REGISTERS_H
 #define CS_REGISTERS_H
 
-#include <stdint.h>
-
 #define CS_REGISTERS_RMIN 0
 #define CS_REGISTERS_RMAX 7
 
@@ -51,23 +49,23 @@
 #define CS_SR_V (1u << 3)
 
 struct cs_registers {
-    uint32_t signals;
-    uint16_t ir;
-    uint8_t r0;
-    uint8_t r1;
-    uint8_t r2;
-    uint8_t r3;
-    uint8_t r4;
-    uint8_t r5;
-    uint8_t r6;
-    uint8_t r7;
-    uint8_t *regfile[8];
-    uint8_t sp;
-    uint8_t pc;
-    uint8_t ac;
-    uint8_t sr;
-    uint8_t mdr;
-    uint8_t mar;
+    unsigned long signals;
+    unsigned short ir;
+    unsigned char r0;
+    unsigned char r1;
+    unsigned char r2;
+    unsigned char r3;
+    unsigned char r4;
+    unsigned char r5;
+    unsigned char r6;
+    unsigned char r7;
+    unsigned char *regfile[8];
+    unsigned char sp;
+    unsigned char pc;
+    unsigned char ac;
+    unsigned char sr;
+    unsigned char mdr;
+    unsigned char mar;
 };
 typedef struct cs_registers cs_registers;
 

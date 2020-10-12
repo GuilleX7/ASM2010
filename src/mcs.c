@@ -11,26 +11,29 @@
 #include "parse.h"
 #include "mcs.h"
 
-#define CODE_ALIGNMENT (sizeof(uint16_t))
+#define CODE_BYTEWIDTH 2
+#define CODE_MAX_VALUE 0xFFFF
 
 static char const MCS_BIN_SIGNATURE[] = { 'C', 'S', '2', '0', '1', '0' };
 static char const *MCS_HEX_SIGNATURE = "v2.0 raw\n";
 
-int mcs_export_file(char const *filepath, uint16_t *code, size_t code_size, int mcs_format) {
+int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size, int mcs_format) {
     FILE *file = fopen(filepath, (mcs_format == MCS_FORMAT_BIN) ? "wb" : "w");
     if (!file) {
         return MCS_EXPORT_FILE_ERROR;
     }
 
+    unsigned short parsed_code = 0;
     if (mcs_format == MCS_FORMAT_BIN) {
         fwrite(MCS_BIN_SIGNATURE, 1, sizeof(MCS_BIN_SIGNATURE) / sizeof(MCS_BIN_SIGNATURE[0]), file);
         for (size_t i = 0; i < code_size; i++) {
-            fwrite(&code[i], sizeof code[i], 1, file);
+            parsed_code = code[i] & CODE_MAX_VALUE;
+            fwrite(&parsed_code, CODE_BYTEWIDTH, 1, file);
         }
     } else {
         fputs(MCS_HEX_SIGNATURE, file);
         for (size_t i = 0; i < code_size; i++) {
-            fprintf(file, "%x\n", code[i]);
+            fprintf(file, "%x\n", code[i] & CODE_MAX_VALUE);
         }
     }
 
@@ -43,7 +46,7 @@ int mcs_export_file(char const *filepath, uint16_t *code, size_t code_size, int 
     return MCS_EXPORT_SUCCESS;
 }
 
-int mcs_import_file(char const *filepath, uint16_t **code, size_t *code_size, int *mcs_format) {
+int mcs_import_file(char const *filepath, unsigned short **code, size_t *code_size, int *mcs_format) {
     FILE *file = fopen(filepath, "rb");
     long int file_marker = 0;
     int status = 0;
@@ -64,24 +67,24 @@ int mcs_import_file(char const *filepath, uint16_t **code, size_t *code_size, in
         fseek(file, 0, SEEK_END);
         /* Check code size */
         *code_size = ftell(file) - sizeof MCS_BIN_SIGNATURE;
-        if (*code_size % 2 || *code_size < CODE_ALIGNMENT) {
+        if (*code_size % CODE_BYTEWIDTH || *code_size < CODE_BYTEWIDTH) {
             /* We expect the code to be 16 bits wide... */
             fclose(file);
             return MCS_IMPORT_ERROR;
         }
         fseek(file, sizeof MCS_BIN_SIGNATURE, SEEK_SET);
-        *code = malloc(*code_size);
+        *code_size /= CODE_BYTEWIDTH; /* Convert it to 16-bit words */
+        *code = malloc(*code_size * CODE_BYTEWIDTH);
         if (!*code) {
             fclose(file);
             return MCS_IMPORT_FILE_ERROR;
         }
-        if (fread(*code, 1, *code_size, file) != *code_size || ferror(file)) {
+        if (fread(*code, CODE_BYTEWIDTH, *code_size, file) != *code_size || ferror(file)) {
             fclose(file);
             free(*code);
             return MCS_IMPORT_FILE_ERROR;
         }
         *mcs_format = MCS_FORMAT_BIN;
-        *code_size /= CODE_ALIGNMENT;
         return MCS_IMPORT_SUCCESS;
     }
 
@@ -112,14 +115,14 @@ int mcs_import_file(char const *filepath, uint16_t **code, size_t *code_size, in
         }
 
         fseek(file, file_marker, SEEK_SET);
-        *code = malloc(CODE_ALIGNMENT * *code_size);
+        *code = malloc(CODE_BYTEWIDTH * *code_size);
         if (!*code) {
             fclose(file);
             return MCS_IMPORT_FILE_ERROR;
         }
         for (size_t i = 0; fgets(buffer, 16, file); i++) {
             buffer_ptr = buffer;
-            (*code)[i] = (uint16_t) retrieve_value_hexadecimal((const char**) &buffer_ptr, &status, UINT16_MAX);
+            (*code)[i] = retrieve_value_hexadecimal((const char **) &buffer_ptr, &status, CODE_MAX_VALUE) & 0xFFFF;
             if (status != RETRIEVE_VALUE_OK) {
                 fclose(file);
                 free(*code);
