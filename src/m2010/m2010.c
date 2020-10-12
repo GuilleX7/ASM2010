@@ -93,7 +93,7 @@ bool open_machine_code_file(char *filepath, cs2010 *cs) {
 			return false;
 		}
 
-		for (int i = 0; i < code_size; i++) {
+		for (unsigned int i = 0; i < code_size; i++) {
 			disassembly = as_disassemble_sentence(code[i]);
 			if (!disassembly) {
 				disassembly = "???";
@@ -134,7 +134,7 @@ int open_machine_code_file_cb(Ihandle *self) {
 
 static bool save_disassembled_code_file(char const *filepath) {
 	FILE *file = { 0 };
-	size_t sentence_size;
+	int sentence_size;
 	if (!is_cs_ready) {
 		return false;
 	}
