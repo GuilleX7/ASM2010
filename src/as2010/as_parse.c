@@ -729,7 +729,7 @@ char *as_disassemble_sentence(unsigned short raw_sentence) {
         if (instruction->index == CS_INS_I_LD) {
             snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, (R%u)", instruction->name, arg_a, arg_b);
         } else if (instruction->index == CS_INS_I_ST) {
-            snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s (R%u), R%u", instruction->name, arg_a, arg_b);
+            snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s (R%u), R%u", instruction->name, arg_b, arg_a);
         } else {
             snprintf(disassembly, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, R%u", instruction->name, arg_a, arg_b);
         }
