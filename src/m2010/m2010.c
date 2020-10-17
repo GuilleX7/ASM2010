@@ -394,8 +394,9 @@ int main(int argc, char **argv) {
 	cs_init(cs);
 	is_cs_ready = false;
 
+	IupSetAttribute(main_window, IUP_SIZE, IUP_HALF "x" IUP_HALF);
 	IupShowXY(main_window, IUP_CENTER, IUP_CENTER);
-	IupSetAttribute(main_window, IUP_EXPAND, "YES");
+	IupSetAttribute(main_window, IUP_SHRINK, IUP_YES);
 	IupMainLoop();
 	IupClose();
 	return EXIT_SUCCESS;
