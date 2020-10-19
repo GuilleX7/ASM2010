@@ -341,7 +341,7 @@ static int exportas_item_cb(Ihandle *self) {
 		IupSetAttribute(dlg, "EXTFILTER", "Binary files|*" MCS_FILE_BIN_EXT "|");
 		IupSetAttribute(dlg, "EXTDEFAULT", "bin");
 	} else {
-		IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*." MCS_FILE_HEX_EXT "|");
+		IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*" MCS_FILE_HEX_EXT "|");
 		IupSetAttribute(dlg, "EXTDEFAULT", "hex");
 	}
 	if (actual_export_filepath && option == actual_export_format) {
