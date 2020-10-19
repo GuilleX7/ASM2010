@@ -41,6 +41,7 @@ m_comp_romgrid m_comp_romgrid_create(void) {
     IupAppend(romgrid.handler, IupLabel(CONTENT_UNKNOWN));
 
     romgrid.any_row_active = false;
+    romgrid.invalid_pc_warned = false;
     romgrid.active_row = 0;
 
     return romgrid;
@@ -61,6 +62,7 @@ void m_comp_romgrid_clear(m_comp_romgrid *romgrid) {
         return;
     }
 
+    m_comp_romgrid_clear_active(romgrid);
     gridbox = m_comp_romgrid_get_handler(romgrid);
     prev_child = IupGetChild(gridbox, NUM_COLS - 1);
     next_child = IupGetNextChild(gridbox, prev_child);
@@ -123,13 +125,16 @@ void m_comp_romgrid_set_active(m_comp_romgrid *romgrid, int index) {
     gridbox = m_comp_romgrid_get_handler(romgrid);
 
     if (index < 0 || index > GET_ROWS_SIZE(IupGetChildCount(gridbox)) - 1) {
+        m_comp_romgrid_clear_active(romgrid);
+        if (!romgrid->invalid_pc_warned) {
+            IupMessagef("Caution", "PC is pointing at addresses containing garbage values, undefined behaviour could happen!");
+            romgrid->invalid_pc_warned = true;
+        }
         return;
     }
 
     if (romgrid->any_row_active) {
-        IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row)), "FONTSTYLE", "");
-        IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row) + 1), "FONTSTYLE", "");
-        IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(romgrid->active_row) + 2), "FONTSTYLE", "");
+        m_comp_romgrid_clear_active(romgrid);
     } else {
         romgrid->any_row_active = true;
     }

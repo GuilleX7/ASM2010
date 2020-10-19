@@ -10,6 +10,7 @@
 struct m_comp_romgrid {
     Ihandle *handler;
     bool any_row_active;
+    bool invalid_pc_warned;
     int active_row;
 };
 typedef struct m_comp_romgrid m_comp_romgrid;
