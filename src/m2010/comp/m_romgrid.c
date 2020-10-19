@@ -135,13 +135,12 @@ void m_comp_romgrid_set_active(m_comp_romgrid *romgrid, int index) {
 
     if (romgrid->any_row_active) {
         m_comp_romgrid_clear_active(romgrid);
-    } else {
-        romgrid->any_row_active = true;
     }
-
     IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(index)), "FONTSTYLE", "Bold");
     IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 1), "FONTSTYLE", "Bold");
     IupSetAttribute(IupGetChild(gridbox, GET_ROW_IDX(index) + 2), "FONTSTYLE", "Bold");
+
+    romgrid->any_row_active = true;
     romgrid->active_row = index;
 }
 
