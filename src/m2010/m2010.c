@@ -35,7 +35,7 @@ bool is_cs_ready;
 
 int check_machine_running() {
 	if (is_cs_ready) {
-		switch (IupAlarm("Warning", "The computer will be wiped out if you try loading a new program", "OK", "Cancel", 0)) {
+		switch (IupAlarm("Warning", "Current simulation will be wiped out. Do you want to continue?", "OK", "Cancel", 0)) {
 		case 1:  /* Continue */
 			break;
 		case 2:  /* Cancel */
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
 	/* About submenu */
 	Ihandle *about_submenu, *about_item;
 	/* Tabs and splits */
-	Ihandle *rom_tabs, *reg_tabs, *ram_tabs, *romregram_split, *regram_split;
+	Ihandle *rom_tabs, *reg_tabs, *ram_tabs, *sig_tabs, *romregram_split, *regram_split, *regsig_split;
 	
 	if (IupOpen(&argc, &argv) == IUP_ERROR) {
 		puts("Error while opening GUI, aborting execution...\n");
@@ -340,18 +340,22 @@ int main(int argc, char **argv) {
 	IupSetAttribute(rom_tabs, "TABTITLE0", "ROM code");
 
 	reg_gridbox = m_comp_reggrid_create();
-	sig_gridbox = m_comp_siggrid_create();
 	reg_tabs = IupTabs(
 		IupScrollBox(
 			m_comp_reggrid_get_handler(&reg_gridbox)
 		),
+		0
+	);
+	IupSetAttribute(reg_tabs, "TABTITLE0", "Registers");
+
+	sig_gridbox = m_comp_siggrid_create();
+	sig_tabs = IupTabs(
 		IupScrollBox(
 			m_comp_siggrid_get_handler(&sig_gridbox)
 		),
 		0
 	);
-	IupSetAttribute(reg_tabs, "TABTITLE0", "Registers");
-	IupSetAttribute(reg_tabs, "TABTITLE1", "Signals");
+	IupSetAttribute(sig_tabs, "TABTITLE0", "Signals");
 
 	ram_gridbox = m_comp_ramgrid_create();
 	ram_tabs = IupTabs(
@@ -362,7 +366,12 @@ int main(int argc, char **argv) {
 	);
 	IupSetAttribute(ram_tabs, "TABTITLE0", "RAM");
 
-	regram_split = IupSplit(reg_tabs, ram_tabs);
+	regsig_split = IupSplit(reg_tabs, sig_tabs);
+	IupSetAttribute(regsig_split, "LAYOUTDRAG", IUP_NO);
+	IupSetAttribute(IupGetChild(regsig_split, 0), "STYLE", "EMPTY");
+	IupSetAttribute(regsig_split, IUP_ORIENTATION, IUP_VERTICAL);
+
+	regram_split = IupSplit(regsig_split, ram_tabs);
 	IupSetAttribute(regram_split, "LAYOUTDRAG", IUP_NO);
 	IupSetAttribute(IupGetChild(regram_split, 0), "STYLE", "EMPTY");
 	IupSetAttribute(regram_split, IUP_ORIENTATION, IUP_HORIZONTAL);
