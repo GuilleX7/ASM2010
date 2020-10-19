@@ -63,6 +63,7 @@ void m_comp_romgrid_clear(m_comp_romgrid *romgrid) {
     }
 
     m_comp_romgrid_clear_active(romgrid);
+    romgrid->invalid_pc_warned = false;
     gridbox = m_comp_romgrid_get_handler(romgrid);
     prev_child = IupGetChild(gridbox, NUM_COLS - 1);
     next_child = IupGetNextChild(gridbox, prev_child);
