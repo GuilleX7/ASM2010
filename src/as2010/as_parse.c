@@ -219,6 +219,7 @@ static unsigned char search_opcode(as_parse_info *pinfo, char const **lineptr) {
     sentence->arg_a = msbyte;
     sentence->arg_a.value.inm = CS_GET_ARG_A(raw_sentence);
     sentence->arg_b = lsbyte;
+    sentence->parsing_line_index = pinfo->parsing_line_index;
     pinfo->sentence_index++;
     return PARSE_LINE_END;
 }
@@ -497,6 +498,7 @@ static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
         return PARSE_LINE_ERROR;
     }
     free(instruction_name);
+    sentence->parsing_line_index = pinfo->parsing_line_index;
 
     unsigned char result = { 0 };
     switch (sentence->instruction->format) {
@@ -677,8 +679,8 @@ int as_parse_assemble(as_parse_info *pinfo) {
         if (sentence->arg_a.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_a.value.equ_key);
             if (!value_ptr) {
-                trace("[Error] Equ '%s' of instruction '%s' at instruction line %" PRI_SIZET " couldn't be resolved\n",
-                    sentence->arg_a.value.equ_key, sentence->instruction->name, i + 1);
+                trace("[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
+                    sentence->arg_a.value.equ_key, sentence->instruction->name, sentence->parsing_line_index);
                 return AS_PARSE_ERROR;
             } else {
                 value = *value_ptr;
@@ -691,8 +693,8 @@ int as_parse_assemble(as_parse_info *pinfo) {
         if (sentence->arg_b.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_b.value.equ_key);
             if (!value_ptr) {
-                trace("[Error] Equ '%s' of instruction '%s' at instruction line %" PRI_SIZET " couldn't be resolved\n",
-                    sentence->arg_b.value.equ_key, sentence->instruction->name, i + 1);
+                trace("[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
+                    sentence->arg_b.value.equ_key, sentence->instruction->name, sentence->parsing_line_index);
                 return AS_PARSE_ERROR;
             } else {
                 value = *value_ptr;

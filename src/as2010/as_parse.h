@@ -43,6 +43,7 @@ struct as_parse_sentence {
 	cs_instruction const *instruction;
 	as_parse_argument arg_a;
 	as_parse_argument arg_b;
+	size_t parsing_line_index;
 };
 typedef struct as_parse_sentence as_parse_sentence;
 
