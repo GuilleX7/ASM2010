@@ -127,3 +127,19 @@ bool read_upper_line(char *line, size_t max_length, char const *const str, size_
     if (str[*offset] == '\0' && !i) return false;
     return true;
 }
+
+char *allocstrcpy(char const *const src) {
+    char *dst = { 0 };
+    size_t src_len = 0;
+    if (!src) {
+        return dst;
+    }
+    src_len = strlen(src);
+    dst = malloc(src_len + 1);
+    if (!dst) {
+        return dst;
+    }
+    strncpy(dst, src, src_len);
+    dst[src_len] = 0;
+    return dst;
+}

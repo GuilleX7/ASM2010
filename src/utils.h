@@ -90,4 +90,12 @@ char *change_path_extension(char const *filepath, char const *new_extension);
 */
 bool read_upper_line(char *line, size_t max_length, char const *const str, size_t *offset);
 
+/**
+ * @brief Allocates a new string and copies source into it
+ * @param src Pointer to the source string
+ * @return Pointer to the allocated string if success,
+ *         null pointer otherwise
+*/
+char *allocstrcpy(char const *const src);
+
 #endif /* UTILS_H */

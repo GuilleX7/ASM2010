@@ -14,7 +14,7 @@
 #define AS_MAX_SOURCE_LINES 65535
 #define AS_MAX_LINE_LENGTH 256
 #define AS_MAX_TRACE_LENGTH 256
-#define AS_MAX_LOG_LENGTH (AS_MAX_TRACE_LENGTH * 4)
+#define AS_MAX_LOG_LENGTH (AS_MAX_TRACE_LENGTH * 5)
 #define AS_MAX_EQU_LENGTH 64	
 
 /* The longest line, so 16 bytes is enough

@@ -638,8 +638,6 @@ int as_parse_line(as_parse_info *pinfo, char const *line) {
     switch (search_line_equ(pinfo, lineptr)) {
     case PARSE_LINE_ERROR:
         return AS_PARSE_ERROR;
-    case PARSE_LINE_WARNING:
-        return AS_PARSE_WARNING;
     default:
         break;
     }
