@@ -44,7 +44,6 @@ int check_machine_running() {
 			break;
 		}
 	}
-
 	return true;
 }
 
@@ -75,41 +74,40 @@ void update_machine_ui(cs2010 *cs) {
 bool open_machine_code_file(char *filepath, cs2010 *cs) {
 	unsigned short *code = { 0 };
 	size_t code_size = 0;
-	int mcs_format = 0;
 	char *disassembly = { 0 };
 
 	if (!check_machine_running()) {
 		return true;
 	}
 
-	if (mcs_import_file(filepath, &code, &code_size, &mcs_format) == MCS_IMPORT_SUCCESS) {
-		m_comp_romgrid_clear(&rom_gridbox);
-		m_comp_ramgrid_clear(&ram_gridbox);
-		m_comp_reggrid_clear(&reg_gridbox);
-		cs_hard_reset(cs);
-		is_cs_ready = false;
-		if (cs_load_and_check(cs, code, code_size) != CS_SUCCESS) {
-			free(code);
-			return false;
-		}
-
-		for (unsigned int i = 0; i < code_size; i++) {
-			disassembly = as_disassemble_sentence(code[i]);
-			if (!disassembly) {
-				disassembly = "???";
-				m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
-			} else {
-				m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
-				free(disassembly);
-			}
-		}
-		is_cs_ready = true;
-		cs_fetch(cs);
-		update_machine_ui(cs);
-		return true;
+	if (mcs_import_file(filepath, &code, &code_size) != MCS_IMPORT_SUCCESS) {
+		return false;
 	}
 
-	return false;
+	m_comp_romgrid_clear(&rom_gridbox);
+	m_comp_ramgrid_clear(&ram_gridbox);
+	m_comp_reggrid_clear(&reg_gridbox);
+	cs_hard_reset(cs);
+	is_cs_ready = false;
+	if (cs_load_and_check(cs, code, code_size) != CS_SUCCESS) {
+		free(code);
+		return false;
+	}
+
+	for (unsigned int i = 0; i < code_size; i++) {
+		disassembly = as_disassemble_sentence(code[i]);
+		if (!disassembly) {
+			disassembly = "???";
+			m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
+		} else {
+			m_comp_romgrid_put_at(&rom_gridbox, i, code[i], disassembly);
+			free(disassembly);
+		}
+	}
+	is_cs_ready = true;
+	cs_fetch(cs);
+	update_machine_ui(cs);
+	return true;
 }
 
 int open_machine_code_file_cb(Ihandle *self) {
@@ -119,7 +117,7 @@ int open_machine_code_file_cb(Ihandle *self) {
 
 	IupSetAttribute(dlg, "DIALOGTYPE", "OPEN");
 	IupSetAttribute(dlg, "TITLE", "Open a CS2010 machine code file");
-	IupSetAttribute(dlg, "EXTFILTER", "All files|*.*|");
+	IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*.hex|All files|*.*|");
 	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
 	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
 	if (IupGetInt(dlg, "STATUS") != -1) {
@@ -187,10 +185,6 @@ int exit_cb(Ihandle *self) {
 	return IUP_CLOSE;
 }
 
-int set_machine_settings_cb(Ihandle *self) {
-	return IUP_DEFAULT;
-}
-
 int step_instruction_cb(Ihandle *self) {
 	if (is_cs_ready) {
 		cs_fullstep(cs);
@@ -199,7 +193,7 @@ int step_instruction_cb(Ihandle *self) {
 	return IUP_DEFAULT;
 }
 
-int step_microinstruction_cb(Ihandle *self) {
+int step_microoperation_cb(Ihandle *self) {
 	if (is_cs_ready) {
 		cs_microstep(cs);
 		update_machine_ui(cs);
@@ -207,13 +201,14 @@ int step_microinstruction_cb(Ihandle *self) {
 	return IUP_DEFAULT;
 }
 
-int start_clock_cb(Ihandle *self) {
+int step_block_cb(Ihandle *self) {
+	if (is_cs_ready) {
+		cs_blockstep(cs);
+		update_machine_ui(cs);
+	}
 	return IUP_DEFAULT;
 }
 
-int stop_clock_cb(Ihandle *self) {
-	return IUP_DEFAULT;
-}
 
 int reset_all_simulation_cb(Ihandle *self) {
 	if (!is_cs_ready) {
@@ -248,11 +243,9 @@ int main(int argc, char **argv) {
 	Ihandle *main_window, *menu;
 	/* File submenu */
 	Ihandle *file_submenu, *open_machine_code_file_item, *save_dissasembled_code_file_item, *exit_item;
-	/* Machine submenu */
-	Ihandle *machine_submenu, *set_machine_settings_item;
 	/* Simulation submenu */
-	Ihandle *simulation_submenu, *step_instruction_item, *step_microinstruction_item,
-		*start_clock_item, *stop_clock_item, *reset_all_simulation_item;
+	Ihandle *simulation_submenu, *step_instruction_item, *step_microoperation_item, *step_block_item,
+		*reset_all_simulation_item;
 	/* About submenu */
 	Ihandle *about_submenu, *about_item;
 	/* Tabs and splits */
@@ -281,32 +274,19 @@ int main(int argc, char **argv) {
 		)
 	);
 
-	set_machine_settings_item = IupItem("Set machine settings", 0);
-	IupSetCallback(set_machine_settings_item, IUP_ACTION, (Icallback) set_machine_settings_cb);
-	machine_submenu = IupSubmenu("Machine",
-		IupMenu(
-			set_machine_settings_item,
-			0
-		)
-	);
-
 	step_instruction_item = IupItem("Step one instruction\tCTRL+I", 0);
 	IupSetCallback(step_instruction_item, IUP_ACTION, (Icallback) step_instruction_cb);
-	step_microinstruction_item = IupItem("Step one microinstruction\tCTRL+M", 0);
-	IupSetCallback(step_microinstruction_item, IUP_ACTION, (Icallback) step_microinstruction_cb);
-	start_clock_item = IupItem("Start clock", 0);
-	IupSetCallback(start_clock_item, IUP_ACTION, (Icallback) start_clock_cb);
-	stop_clock_item = IupItem("Stop clock", 0);
-	IupSetCallback(stop_clock_item, IUP_ACTION, (Icallback) stop_clock_cb);
+	step_microoperation_item = IupItem("Step one microoperation\tCTRL+M", 0);
+	IupSetCallback(step_microoperation_item, IUP_ACTION, (Icallback) step_microoperation_cb);
+	step_block_item = IupItem("Step block\tCTRL+B", 0);
+	IupSetCallback(step_block_item, IUP_ACTION, (Icallback) step_block_cb);
 	reset_all_simulation_item = IupItem("Reset all simulation\tCTRL+R", 0);
 	IupSetCallback(reset_all_simulation_item, IUP_ACTION, (Icallback) reset_all_simulation_cb);
 	simulation_submenu = IupSubmenu("Simulation",
 		IupMenu(
 			step_instruction_item,
-			step_microinstruction_item,
-			IupSeparator(),
-			start_clock_item,
-			stop_clock_item,
+			step_microoperation_item,
+			step_block_item,
 			IupSeparator(),
 			reset_all_simulation_item,
 			0
@@ -324,7 +304,6 @@ int main(int argc, char **argv) {
 
 	menu = IupMenu(
 		file_submenu,
-		machine_submenu,
 		simulation_submenu,
 		about_submenu,
 		0
@@ -390,7 +369,8 @@ int main(int argc, char **argv) {
 	IupSetCallback(main_window, "K_cS", (Icallback) save_disassembled_code_file_cb);
 	IupSetCallback(main_window, "K_cQ", (Icallback) exit_cb);
 	IupSetCallback(main_window, "K_cI", (Icallback) step_instruction_cb);
-	IupSetCallback(main_window, "K_cM", (Icallback) step_microinstruction_cb);
+	IupSetCallback(main_window, "K_cM", (Icallback) step_microoperation_cb);
+	IupSetCallback(main_window, "K_cB", (Icallback) step_block_cb);
 	IupSetCallback(main_window, "K_cR", (Icallback) reset_all_simulation_cb);
 	IupSetCallback(main_window, IUP_CLOSE_CB, (Icallback) exit_cb);
 

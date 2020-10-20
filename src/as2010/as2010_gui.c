@@ -24,7 +24,6 @@
 
 static char *actual_source_filepath = { 0 };
 static char *actual_export_filepath = { 0 };
-static int actual_export_format = 0;
 static bool dirty = false;
 
 /* They just needed declaration */
@@ -65,9 +64,10 @@ static bool open_file(Ihandle *window, char const *filepath) {
 */
 static bool mark_actual_source(Ihandle *window, char const *filepath) {
 	if (actual_source_filepath) free(actual_source_filepath);
-	actual_source_filepath = malloc(strlen(filepath) + 1);
-	if (!actual_source_filepath) return false;
-	strcpy(actual_source_filepath, filepath);
+	actual_source_filepath = allocstrcpy(filepath);
+	if (!actual_source_filepath) {
+		return false;
+	}
 	IupSetStrf(window, "TITLE", "%s - %s", get_file_name(filepath), PROGRAM_NAME);
 	return true;
 }
@@ -80,12 +80,12 @@ static bool mark_actual_source(Ihandle *window, char const *filepath) {
  * @param file Path to the file
  * @param export_format Exporting format for the file
 */
-static bool mark_actual_export(char const *filepath, int export_format) {
+static bool mark_actual_export(char const *filepath) {
 	if (actual_export_filepath) free(actual_export_filepath);
-	actual_export_filepath = malloc(strlen(filepath) + 1);
-	if (!actual_export_filepath) return false;
-	strcpy(actual_export_filepath, filepath);
-	actual_export_format = export_format;
+	actual_export_filepath = allocstrcpy(filepath);
+	if (!actual_export_filepath) {
+		return false;
+	}
 	return true;
 }
 
@@ -100,8 +100,6 @@ static void clear_actual(Ihandle *window) {
 	actual_source_filepath = 0;
 	if (actual_export_filepath) free(actual_export_filepath);
 	actual_export_filepath = 0;
-	actual_export_format = 0;
-
 	IupSetAttribute(window, "TITLE", PROGRAM_NAME);
 }
 
@@ -202,7 +200,7 @@ static void export_file(Ihandle *window) {
 	}
 
 	if (parse_source(window, &pinfo) == AS_PARSE_OK) {
-		switch (mcs_export_file(actual_export_filepath, pinfo.machine_code, pinfo.sentence_index, actual_export_format)) {
+		switch (mcs_export_file(actual_export_filepath, pinfo.machine_code, pinfo.sentence_index)) {
 		case MCS_EXPORT_FILE_ERROR:
 			IupMessagef("Error", "Couldn't open file '%s'\n", actual_export_filepath);
 			break;
@@ -328,31 +326,16 @@ static int exportas_item_cb(Ihandle *self) {
 	int option = 0;
 	char *possible_file = { 0 };
 
-	if (!IupGetParam("Select exporting format...", 0, 0, "%o|Binary|Hexadecimal|\n", &option)) {
-		trace(status_multitext, "Operation cancelled\n");
-		return IUP_DEFAULT;
-	}
-
-	if (option == 0) {
-		option = MCS_FORMAT_BIN;
-	} else {
-		option = MCS_FORMAT_HEX;
-	}
-
 	dlg = IupFileDlg();
 	IupSetAttribute(dlg, "DIALOGTYPE", "SAVE");
 	IupSetAttributeHandle(dlg, "PARENTDIALOG", main_window);
-	if (option == MCS_FORMAT_BIN) {
-		IupSetAttribute(dlg, "EXTFILTER", "Binary files|*" MCS_FILE_BIN_EXT "|");
-		IupSetAttribute(dlg, "EXTDEFAULT", "bin");
-	} else {
-		IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*" MCS_FILE_HEX_EXT "|");
-		IupSetAttribute(dlg, "EXTDEFAULT", "hex");
-	}
-	if (actual_export_filepath && option == actual_export_format) {
+	IupSetAttribute(dlg, "EXTFILTER", "Hexadecimal files|*" MCS_FILE_EXT "|");
+	IupSetAttribute(dlg, "EXTDEFAULT", "hex");
+
+	if (actual_export_filepath) {
 		IupSetAttribute(dlg, "FILE", actual_export_filepath);
 	} else if (actual_source_filepath) {
-		possible_file = change_path_extension(actual_source_filepath, (option == MCS_FORMAT_BIN) ? MCS_FILE_BIN_EXT : MCS_FILE_HEX_EXT);
+		possible_file = change_path_extension(actual_source_filepath, MCS_FILE_EXT);
 		if (possible_file) {
 			IupSetStrAttribute(dlg, "FILE", possible_file);
 			free(possible_file);
@@ -363,7 +346,7 @@ static int exportas_item_cb(Ihandle *self) {
 
 	if (IupGetInt(dlg, "STATUS") != -1) {
 		file = IupGetAttribute(dlg, "VALUE");
-		mark_actual_export(file, option);
+		mark_actual_export(file);
 		export_file(main_window);
 	} else {
 		trace(status_multitext, "Operation cancelled\n");

@@ -43,7 +43,6 @@ void cs_hard_reset(cs2010 *cs) {
     cs_clear_memory(cs, CS_CLEAR_RAM | CS_CLEAR_ROM);
     cs_reset_registers(cs);
     cs->stopped = false;
-    cs->last_ram_change_address = 0;
 }
 
 void cs_soft_reset(cs2010 *cs) {
@@ -54,7 +53,6 @@ void cs_soft_reset(cs2010 *cs) {
     cs->reg.pc = 0;
     cs->reg.sp = 0xFF;
     cs->stopped = false;
-    cs->last_ram_change_address = 0;
 }
 
 void cs_clear_memory(cs2010 *cs, unsigned char flags) {
@@ -161,8 +159,20 @@ void cs_fullstep(cs2010 *cs) {
 }
 
 void cs_blockstep(cs2010 *cs) {
+    unsigned char opcode;
+
     if (!cs) {
         return;
+    }
+
+    cs_fullstep(cs);
+    opcode = CS_GET_OPCODE(cs->reg.ir);
+    while (opcode != CS_INS_I_JMP &&
+        opcode != CS_INS_I_BRXX &&
+        opcode != CS_INS_I_CALL &&
+        !cs->stopped) {
+        cs_step(cs);
+        opcode = CS_GET_OPCODE(cs->reg.ir);
     }
 }
 

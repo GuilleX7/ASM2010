@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define STRGIFY(a) #a
 #define STRINGIFY(a) STRGIFY(a)
@@ -97,5 +98,11 @@ bool read_upper_line(char *line, size_t max_length, char const *const str, size_
  *         null pointer otherwise
 */
 char *allocstrcpy(char const *const src);
+
+/**
+ * @brief Wrapper for fgets that fixes line ends
+ * @see fgets
+*/
+char *ufgets(char *s, int n, FILE* stream);
 
 #endif /* UTILS_H */

@@ -25,8 +25,6 @@ static void show_help(void) {
 		"USAGE: " PROGRAM_NAME " file [parameters]\n\n"
 		"PARAMETERS:\n"
 		"-help\tShow this help\n"
-		"-bin\tUse binary format as output (default)\n"
-		"-hex\tUse textual hexadecimal format as output (suitable for Logisim)\n"
 		"-o file\tOutput to the given file (will be overwritten)\n"
 		"-v\tShows about information\n"
 	);
@@ -45,7 +43,6 @@ int main(int argc, char **argv) {
 	char *file_str;
 	char line[AS_MAX_LINE_LENGTH + 2];
 	size_t offset = 0;
-	int output_format = MCS_FORMAT_BIN;
 	char *output_path = { 0 };
 	bool must_free_path = false;
 	char const *arg = { 0 };
@@ -67,11 +64,7 @@ int main(int argc, char **argv) {
 
 	for (int i = 2; i < argc; i++) {
 		arg = argv[i];
-		if (!strcmp(arg, "-bin")) {
-			output_format = MCS_FORMAT_BIN;
-		} else if (!strcmp(arg, "-hex")) {
-			output_format = MCS_FORMAT_HEX;
-		} else if (!strcmp(arg, "-o")) {
+		if (!strcmp(arg, "-o")) {
 			if (i == argc - 1) {
 				printf("-o: File output not specified\n");
 				continue;
@@ -128,10 +121,10 @@ int main(int argc, char **argv) {
 	puts("Successfully assembled!\n");
 
 	if (!output_path) {
-		output_path = change_path_extension(argv[1], (output_format == MCS_FORMAT_BIN) ? MCS_FILE_BIN_EXT : MCS_FILE_HEX_EXT);
+		output_path = change_path_extension(argv[1], MCS_FILE_EXT);
 		must_free_path = true;
 	}
-	switch (mcs_export_file(output_path, pinfo.machine_code, pinfo.sentence_index, output_format)) {
+	switch (mcs_export_file(output_path, pinfo.machine_code, pinfo.sentence_index)) {
 	case MCS_EXPORT_FILE_ERROR:
 		printf("Error: couldn't open output file '%s'\n", argv[1]);
 		break;

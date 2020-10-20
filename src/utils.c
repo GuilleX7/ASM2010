@@ -4,7 +4,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -142,4 +141,12 @@ char *allocstrcpy(char const *const src) {
     strncpy(dst, src, src_len);
     dst[src_len] = 0;
     return dst;
+}
+
+char *ufgets(char *s, int n, FILE *stream) {
+    char *r = fgets(s, n, stream);
+    if (r) {
+        s[strcspn(s, "\n\r")] = '\0';
+    }
+    return r;
 }

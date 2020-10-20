@@ -9,8 +9,8 @@
 #define ASM2010_EMAIL "guillermox7@gmail.com"
 #define ASM2010_URL "https://github.com/GuilleX7/ASM2010"
 #define ASM2010_MAJOR_VERSION 0
-#define ASM2010_MINOR_VERSION 3
-#define ASM2010_PATCH_VERSION 2
+#define ASM2010_MINOR_VERSION 4
+#define ASM2010_PATCH_VERSION 0
 
 #define MAKE_ABOUT_TEXT(NAME, DESCRIPTION) \
 NAME " v"\

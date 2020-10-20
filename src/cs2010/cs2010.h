@@ -22,7 +22,6 @@ struct cs2010 {
     cs_registers reg;
     unsigned char microop;
     bool stopped;
-    size_t last_ram_change_address;
 };
 typedef struct cs2010 cs2010;
 

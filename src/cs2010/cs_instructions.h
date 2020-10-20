@@ -13,7 +13,7 @@
 #define CS_INS_FORMAT_D 3
 #define CS_INS_FORMAT_E 4
 
-#define CS_INS_INM_MAX_VALUE 255u
+#define CS_INS_INM_MAX_VALUE 0xFFu
 
 #define CS_INS_NAME_MAX_LENGTH 4
 
