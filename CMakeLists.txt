@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(ASM2010 C)
-set(C_STANDARD 99)
+set(C_STANDARD 89)
 if (NOT CMAKE_BUILD_TYPE)
 	message("Build type not specified: assuming release")
 	set(CMAKE_BUILD_TYPE "Release")
@@ -71,16 +71,11 @@ set(M2010_SOURCE
 "src/m2010/comp/m_siggrid.c"
 "src/m2010/comp/m_siggrid.h"
 )
-set(TINYCTHREAD_SOURCE
-"include/tinycthread/tinycthread.c"
-"include/tinycthread/tinycthread.h"
-)
 
 # Object libraries
 add_library(asm2010-common OBJECT ${ASM2010_COMMON_SOURCE})
 add_library(cs2010-common OBJECT ${CS2010_COMMON_SOURCE})
 add_library(as2010-common OBJECT ${AS2010_COMMON_SOURCE})
-add_library(tinycthread OBJECT ${TINYCTHREAD_SOURCE})
 
 # Check whether GUI is built or not
 set(ASM2010_GUI_BUILD AS2010_GUI_BUILD OR M2010_BUILD)
@@ -112,20 +107,6 @@ if (ASM2010_GUI_BUILD)
 	elseif (UNIX)
 		list(APPEND IUP_LIBS "gtk-3" "gdk-3" "pangocairo-1.0" "pango-1.0" "atk-1.0" "cairo-gobject" "cairo" "gdk_pixbuf-2.0" "gio-2.0" "gobject-2.0" "glib-2.0" "X11" "m")
 	endif (WIN32)
-
-	# Find CD dependencies (only for m2010)
-	if (M2010_BUILD)
-		find_library(IUPCD NAMES "iupcd" HINTS "lib/${DEFAULTLIB_PREFIX}" REQUIRED)
-		find_library(CD NAMES "cd" HINTS "lib/${DEFAULTLIB_PREFIX}" REQUIRED)
-		list(APPEND CD_LIBS ${IUPCD} ${CD} ${FREETYPE6})
-		if (WIN32)
-			find_library(ZLIB1 NAMES "zlib1" HINTS "lib/${DEFAULTLIB_PREFIX}" REQUIRED)
-			find_library(FREETYPE6 NAMES "freetype6" HINTS "lib/${DEFAULTLIB_PREFIX}" REQUIRED)
-			list(APPEND CD_LIBS ${ZLIB1} ${FREETYPE6})
-		elseif (UNIX)
-			list(APPEND CD_LIBS "fontconfig" "freetype")
-		endif (WIN32)
-	endif (M2010_BUILD)
 endif (ASM2010_GUI_BUILD)
 
 # AS2010 build
@@ -142,8 +123,6 @@ if (AS2010_GUI_BUILD)
 			set_target_properties(as2010-gui PROPERTIES WIN32_EXECUTABLE TRUE)
 		endif ()
 		if (MSVC)
-			# Do not link with libcmt (IUP is already linked to)
-			target_link_options(as2010-gui PUBLIC "/NODEFAULTLIB:LIBCMT.LIB")
 			# Link with IUP manifest
 			add_custom_command(
 				TARGET as2010-gui
@@ -156,15 +135,13 @@ endif (AS2010_GUI_BUILD)
 
 # m2010 build
 if (M2010_BUILD)
-	add_executable(m2010 ${M2010_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common> $<TARGET_OBJECTS:as2010-common> $<TARGET_OBJECTS:tinycthread>)
-	target_link_libraries(m2010 ${CD_LIBS} ${IUP_LIBS} )
+	add_executable(m2010 ${M2010_SOURCE} $<TARGET_OBJECTS:asm2010-common> $<TARGET_OBJECTS:cs2010-common> $<TARGET_OBJECTS:as2010-common>)
+	target_link_libraries(m2010 ${IUP_LIBS} )
 	if (WIN32)
 		if (${CMAKE_BUILD_TYPE} MATCHES "Release")
 			set_target_properties(m2010 PROPERTIES WIN32_EXECUTABLE TRUE)
 		endif ()
 		if (MSVC)
-			# Do not link with libcmt (IUP is already linked to)
-			target_link_options(m2010 PUBLIC "/NODEFAULTLIB:LIBCMT.LIB")
 			# Link with IUP manifest
 			add_custom_command(
 				TARGET m2010
@@ -172,7 +149,5 @@ if (M2010_BUILD)
 				COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\etc\\win32\\asm2010.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\bin\\m2010.exe\"\;\#1
 			)
 		endif (MSVC)
-	elseif (UNIX)
-		target_link_libraries(m2010 "pthread")
 	endif (WIN32)
 endif (M2010_BUILD)
