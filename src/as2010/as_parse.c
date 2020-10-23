@@ -30,8 +30,6 @@
 #define INDIRECT_REG_END_MARK ')'
 #define REG_MARK 'R'
 
-#define trace(...) trace_log_printf(&pinfo->log, __VA_ARGS__)
-
 /**
  * @brief Searchs for a line end or a comment mark.
  * @param lineptr Pointer to pointer to the line string
@@ -58,7 +56,7 @@ int search_line_end(char const **lineptr) {
  *		or invalid value otherwise
 */
 static as_parse_argument retrieve_inm(char const **lineptr, int *status, size_t max_value) {
-    as_parse_argument argument = { .type = AS_ARGUMENT_TYPE_INVALID };
+    as_parse_argument argument = AS_ARGUMENT_DEFINE_OF_TYPE(AS_ARGUMENT_TYPE_INVALID);
     argument.value.inm = retrieve_value(lineptr, status, max_value, search_line_end);
     if (*status == RETRIEVE_VALUE_OK) {
         argument.type = AS_ARGUMENT_TYPE_INM;
@@ -79,7 +77,7 @@ static as_parse_argument retrieve_inm(char const **lineptr, int *status, size_t 
  *		a valid immediate value or invalid value otherwise
 */
 static as_parse_argument retrieve_inm_or_equ(as_parse_info *pinfo, char const **lineptr, int *status, size_t max_len, size_t max_value) {
-    as_parse_argument argument = { .type = AS_ARGUMENT_TYPE_INVALID };
+    as_parse_argument argument = AS_ARGUMENT_DEFINE_OF_TYPE(AS_ARGUMENT_TYPE_INVALID);
     char *identifier = retrieve_alnum_identifier(lineptr, max_len, search_line_end);
 
     if (identifier) {
@@ -107,37 +105,40 @@ static as_parse_argument retrieve_inm_or_equ(as_parse_info *pinfo, char const **
  *          PARSE_LINE_ERROR if parsing should be aborted
 */
 static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
+    char *identifier;
+    int status = 0;
+    size_t value = 0;
+    
     if (strncmp(*lineptr, EQU_KEYWORD, EQU_KEYWORD_LENGTH)) return PARSE_LINE_KEEP;
     (*lineptr) += EQU_KEYWORD_LENGTH;
 
-    char *identifier = retrieve_alnum_identifier(lineptr, AS_MAX_EQU_LENGTH, search_line_end);
+    identifier = retrieve_alnum_identifier(lineptr, AS_MAX_EQU_LENGTH, search_line_end);
     if (!identifier) {
-        trace("[Error] invalid identifier for equ at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid identifier for equ at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (hash_table_exists(&pinfo->equs_ht, identifier)) {
-        trace("[Warning] identifier '%s' declared at line %" PRI_SIZET " already exists, redeclaration "\
+        trace_log_printf(&pinfo->log, "[Warning] identifier '%s' declared at line %" PRI_SIZET " already exists, redeclaration "\
             "will be ignored\n", identifier, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_WARNING;
     }
 
     if (search_character(lineptr, EQU_DEFINE_MARK, search_line_end) != PARSE_LINE_KEEP) {
-        trace("[Error] token '%c' not found for identifier '%s' or value not specified at line %" PRI_SIZET "\n", EQU_DEFINE_MARK, identifier, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] token '%c' not found for identifier '%s' or value not specified at line %" PRI_SIZET "\n", EQU_DEFINE_MARK, identifier, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_ERROR;
     }
 
-    int status;
-    size_t value = retrieve_value(lineptr, &status, CS_INS_INM_MAX_VALUE, search_line_end);
+    value = retrieve_value(lineptr, &status, CS_INS_INM_MAX_VALUE, search_line_end);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
-        trace("[Error] invalid value specified for equ identifier '%s' at line %" PRI_SIZET "\n", identifier, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid value specified for equ identifier '%s' at line %" PRI_SIZET "\n", identifier, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_ERROR;
     case RETRIEVE_VALUE_OUTOFBOUNDS:
-        trace("[Error] value specified for equ identifier '%s' at line %" PRI_SIZET " is out of bounds\n", identifier, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] value specified for equ identifier '%s' at line %" PRI_SIZET " is out of bounds\n", identifier, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_ERROR;
     default:
@@ -145,7 +146,7 @@ static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
     }
 
     if (search_line_end(lineptr) == PARSE_LINE_KEEP) {
-        trace(("[Error] expected end of line after equ definition at line %" PRI_SIZET "\n"), pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, ("[Error] expected end of line after equ definition at line %" PRI_SIZET "\n"), pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_ERROR;
     }
@@ -166,54 +167,59 @@ static int search_defined_equ(as_parse_info *pinfo, char const **lineptr) {
  *         PARSE_LINE_ERROR if parsing should be aborted
 */
 static unsigned char search_opcode(as_parse_info *pinfo, char const **lineptr) {
+    int status = 0;
+    as_parse_argument msbyte = { 0 };
+    as_parse_argument lsbyte = { 0 };
+    unsigned short raw_sentence = 0;
+    as_parse_sentence *sentence = { 0 };
+    
     if (strncmp(*lineptr, OPCODE_KEYWORD, OPCODE_KEYWORD_LENGTH)) return PARSE_LINE_KEEP;
     (*lineptr) += OPCODE_KEYWORD_LENGTH;
 
-    int status = { 0 };
-    as_parse_argument msbyte = retrieve_inm(lineptr, &status, CS_INS_INM_MAX_VALUE);
+    msbyte = retrieve_inm(lineptr, &status, CS_INS_INM_MAX_VALUE);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
-        trace("[Error] invalid value specified as MSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid value specified as MSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     case RETRIEVE_VALUE_OUTOFBOUNDS:
-        trace("[Error] value specified as MSB for opcode is out of bounds at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] value specified as MSB for opcode is out of bounds at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     default:
         break;
     }
 
     if (search_character(lineptr, ARG_SEP_MARK, search_line_end) == PARSE_LINE_END) {
-        trace("[Error] invalid format for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid format for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
-    as_parse_argument lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
+    lsbyte = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
     switch (status) {
     case RETRIEVE_VALUE_INVALID:
-        trace("[Error] invalid value specified as LSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid value specified as LSB for opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     case RETRIEVE_VALUE_OUTOFBOUNDS:
-        trace("[Error] value specified as LSB for opcode is out of bounds at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] value specified as LSB for opcode is out of bounds at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     default:
         break;
     }
 
     if (search_line_end(lineptr) == PARSE_LINE_KEEP) {
-        trace("[Error] expected end of line after opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] expected end of line after opcode at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (pinfo->sentence_index + 1 >= pinfo->max_sentences) {
-        trace("[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
+        trace_log_printf(&pinfo->log, "[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
         return PARSE_LINE_ERROR;
     }
 
-    unsigned short raw_sentence = CS_GET_RAW_SENTENCE(lsbyte.value.inm, msbyte.value.inm);
-    as_parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
+    raw_sentence = CS_GET_RAW_SENTENCE(lsbyte.value.inm, msbyte.value.inm);
+    sentence = &pinfo->sentences[pinfo->sentence_index];
     sentence->instruction = cs_ins_get_from_sentence(raw_sentence);
     if (!sentence->instruction) {
-        trace("[Error] unknown instruction with opcode '%#x' (MSB %#x) at line %" PRI_SIZET "\n", CS_GET_OPCODE(raw_sentence), msbyte.value.inm, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] unknown instruction with opcode '%#x' (MSB %#x) at line %" PRI_SIZET "\n", CS_GET_OPCODE(raw_sentence), msbyte.value.inm, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
     sentence->arg_a = msbyte;
@@ -236,24 +242,26 @@ static unsigned char search_opcode(as_parse_info *pinfo, char const **lineptr) {
 static int search_line_equ(as_parse_info *pinfo, char const **lineptr) {
     char *comment_mark_ptr = strchr(*lineptr, COMMENT_MARK);
     char *equ_mark_ptr = strchr(*lineptr, EQU_LINE_MARK);
+    char *identifier = { 0 };
+    
     if (!equ_mark_ptr || (comment_mark_ptr && comment_mark_ptr - equ_mark_ptr < 0))
         return PARSE_LINE_KEEP;
 
-    char *identifier = retrieve_alnum_identifier(lineptr, AS_MAX_EQU_LENGTH, search_line_end);
+    identifier = retrieve_alnum_identifier(lineptr, AS_MAX_EQU_LENGTH, search_line_end);
     if (!identifier) {
-        trace("[Error] invalid equ identifier at line %" PRI_SIZET " (perhaps not alphanumerical?)\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid equ identifier at line %" PRI_SIZET " (perhaps not alphanumerical?)\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (search_character(lineptr, EQU_LINE_MARK, search_line_end) == PARSE_LINE_END) {
-        trace("[Error] token '%c' not found at equ definition or no instruction follows "\
+        trace_log_printf(&pinfo->log, "[Error] token '%c' not found at equ definition or no instruction follows "\
             "the token at line %" PRI_SIZET "\n", EQU_LINE_MARK, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_ERROR;
     }
 
     if (hash_table_exists(&pinfo->equs_ht, identifier)) {
-        trace("[Warning] identifier '%s' declared at line %" PRI_SIZET " already exists, redeclaration "\
+        trace_log_printf(&pinfo->log, "[Warning] identifier '%s' declared at line %" PRI_SIZET " already exists, redeclaration "\
             "will be ignored\n", identifier, pinfo->parsing_line_index);
         free(identifier);
         return PARSE_LINE_WARNING;
@@ -274,7 +282,7 @@ static int search_line_equ(as_parse_info *pinfo, char const **lineptr) {
  *          a parse argument with ARGUMENT_TYPE_INVALID type otherwise
 */
 static as_parse_argument search_register(char const **lineptr, bool allow_indirect_syntax) {
-    as_parse_argument register_argument = { .type = AS_ARGUMENT_TYPE_INVALID };
+    as_parse_argument register_argument = AS_ARGUMENT_DEFINE_OF_TYPE(AS_ARGUMENT_TYPE_INVALID);
     size_t register_number = 0;
     int status = { 0 };
     bool indirect = false;
@@ -344,18 +352,18 @@ static int parse_instruction_fa(as_parse_info *pinfo, char const **lineptr) {
 
     *reg_dst = search_register(lineptr, (sentence->instruction->index == CS_INS_I_ST) ? true : false);
     if (reg_dst->type == AS_ARGUMENT_TYPE_INVALID) {
-        trace("[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (search_character(lineptr, ARG_SEP_MARK, search_line_end) != PARSE_LINE_KEEP) {
-        trace("[Error] invalid format for instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid format for instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     *reg_src = search_register(lineptr, (sentence->instruction->index == CS_INS_I_LD) ? true : false);
     if (reg_src->type == AS_ARGUMENT_TYPE_INVALID) {
-        trace("[Error] invalid register as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid register as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
@@ -378,33 +386,33 @@ static int parse_instruction_fb(as_parse_info *pinfo, char const **lineptr) {
         int status = { 0 };
         *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
         if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
-            trace("[Error] invalid value/address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+            trace_log_printf(&pinfo->log, "[Error] invalid value/address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
         }
     } else {
         *reg_dst = search_register(lineptr, false);
         if (reg_dst->type == AS_ARGUMENT_TYPE_INVALID) {
-            trace("[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+            trace_log_printf(&pinfo->log, "[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
         }
     }
 
     if (search_character(lineptr, ARG_SEP_MARK, search_line_end) != PARSE_LINE_KEEP) {
-        trace("[Error] invalid format for instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid format for instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (sentence->instruction->index == CS_INS_I_STS) {
         *reg_dst = search_register(lineptr, false);
         if (reg_dst->type == AS_ARGUMENT_TYPE_INVALID) {
-            trace("[Error] invalid register as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+            trace_log_printf(&pinfo->log, "[Error] invalid register as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
         }
     } else {
         int status = { 0 };
         *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
         if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
-            trace("[Error] invalid value/address as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+            trace_log_printf(&pinfo->log, "[Error] invalid value/address as parameter 2 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
             return PARSE_LINE_ERROR;
         }
     }
@@ -423,14 +431,14 @@ static int parse_instruction_fc(as_parse_info *pinfo, char const **lineptr) {
     as_parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
     as_parse_argument *jump_condition = &sentence->arg_a;
     as_parse_argument *inm_address = &sentence->arg_b;
+    int status = { 0 };
 
     jump_condition->type = AS_ARGUMENT_TYPE_INM;
     jump_condition->value.inm = cs_ins_get_jmp_condition(sentence->instruction);
 
-    int status = { 0 };
     *inm_address = retrieve_inm_or_equ(pinfo, lineptr, &status, AS_MAX_EQU_LENGTH, CS_INS_INM_MAX_VALUE);
     if (inm_address->type == AS_ARGUMENT_TYPE_INVALID) {
-        trace("[Error] invalid address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid address as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
@@ -452,7 +460,7 @@ static int parse_instruction_fd(as_parse_info *pinfo, char const **lineptr) {
 
     *reg_dst = search_register(lineptr, false);
     if (reg_dst->type == AS_ARGUMENT_TYPE_INVALID) {
-        trace("[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid register as parameter 1 of instruction '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
@@ -485,22 +493,24 @@ static int parse_instruction_fe(as_parse_info *pinfo) {
 */
 static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
     char *instruction_name = retrieve_alnum_identifier(lineptr, CS_INS_NAME_MAX_LENGTH, search_line_end);
+    as_parse_sentence *sentence = { 0 };
+    unsigned char result = { 0 };
+    
     if (!instruction_name) {
-        trace("[Error] invalid instruction at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid instruction at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
-    as_parse_sentence *sentence = &pinfo->sentences[pinfo->sentence_index];
+    sentence = &pinfo->sentences[pinfo->sentence_index];
     sentence->instruction = cs_ins_search_by_name(instruction_name);
     if (!sentence->instruction) {
-        trace("[Error] unknown instruction '%s' at line %" PRI_SIZET "\n", instruction_name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] unknown instruction '%s' at line %" PRI_SIZET "\n", instruction_name, pinfo->parsing_line_index);
         free(instruction_name);
         return PARSE_LINE_ERROR;
     }
     free(instruction_name);
     sentence->parsing_line_index = pinfo->parsing_line_index;
-
-    unsigned char result = { 0 };
+    
     switch (sentence->instruction->format) {
     case CS_INS_FORMAT_A:
         result = parse_instruction_fa(pinfo, lineptr);
@@ -518,7 +528,7 @@ static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
         result = parse_instruction_fe(pinfo);
         break;
     default:
-        trace("[Error] unknown instruction type for '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] unknown instruction type for '%s' at line %" PRI_SIZET "\n", sentence->instruction->name, pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
@@ -530,12 +540,12 @@ static int search_instruction(as_parse_info *pinfo, char const **lineptr) {
     }
 
     if (search_line_end(lineptr) == PARSE_LINE_KEEP) {
-        trace("[Error] expected end of the line after instruction arguments at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] expected end of the line after instruction arguments at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return PARSE_LINE_ERROR;
     }
 
     if (pinfo->sentence_index + 1 >= pinfo->max_sentences) {
-        trace("[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
+        trace_log_printf(&pinfo->log, "[Error] maximum sentence lines reached (%" PRI_SIZET ")\n", pinfo->max_sentences);
         return PARSE_LINE_ERROR;
     }
     pinfo->sentence_index++;
@@ -580,8 +590,9 @@ bool as_parse_init(as_parse_info *pinfo, size_t max_sentences) {
 }
 
 void as_parse_free(as_parse_info *pinfo) {
+    size_t i = 0;
     hash_table_free(&pinfo->equs_ht);
-    for (size_t i = 0; i < pinfo->sentence_index; i++) {
+    for (i = 0; i < pinfo->sentence_index; i++) {
         free_argument(&pinfo->sentences[i].arg_a);
         free_argument(&pinfo->sentences[i].arg_b);
     }
@@ -597,14 +608,14 @@ int as_parse_line(as_parse_info *pinfo, char const *line) {
 
     /* Check lines */
     if (pinfo->parsing_line_index > AS_MAX_SOURCE_LINES) {
-        trace("[Error] maximum source lines reached (%u)\n", AS_MAX_SOURCE_LINES);
+        trace_log_printf(&pinfo->log, "[Error] maximum source lines reached (%u)\n", AS_MAX_SOURCE_LINES);
         return AS_PARSE_ERROR;
     }
     pinfo->parsing_line_index++;
 
     /* Check line length */
     if (strlen(line) > AS_MAX_LINE_LENGTH + 1) {
-        trace("[Error] invalid line length at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
+        trace_log_printf(&pinfo->log, "[Error] invalid line length at line %" PRI_SIZET "\n", pinfo->parsing_line_index);
         return AS_PARSE_ERROR;
     }
 
@@ -656,6 +667,7 @@ int as_parse_line(as_parse_info *pinfo, char const *line) {
 }
 
 int as_parse_assemble(as_parse_info *pinfo) {
+    size_t i = 0;
     as_parse_sentence *sentence = { 0 };
     unsigned short *bincode = { 0 };
     size_t *value_ptr = { 0 };
@@ -664,11 +676,11 @@ int as_parse_assemble(as_parse_info *pinfo) {
     trace_log_clear(&pinfo->log);
 
     if (pinfo->sentence_index < 1) {
-        trace("[Error] at least one valid sentence is required\n");
+        trace_log_printf(&pinfo->log, "[Error] at least one valid sentence is required\n");
         return AS_PARSE_ERROR;
     }
 
-    for (size_t i = 0; i < pinfo->sentence_index; i++) {
+    for (i = 0; i < pinfo->sentence_index; i++) {
         sentence = &pinfo->sentences[i];
         bincode = &pinfo->machine_code[i];
 
@@ -677,7 +689,7 @@ int as_parse_assemble(as_parse_info *pinfo) {
         if (sentence->arg_a.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_a.value.equ_key);
             if (!value_ptr) {
-                trace("[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
+                trace_log_printf(&pinfo->log, "[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
                     sentence->arg_a.value.equ_key, sentence->instruction->name, sentence->parsing_line_index);
                 return AS_PARSE_ERROR;
             } else {
@@ -691,7 +703,7 @@ int as_parse_assemble(as_parse_info *pinfo) {
         if (sentence->arg_b.type == AS_ARGUMENT_TYPE_EQU) {
             value_ptr = hash_table_get(&pinfo->equs_ht, sentence->arg_b.value.equ_key);
             if (!value_ptr) {
-                trace("[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
+                trace_log_printf(&pinfo->log, "[Error] Equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
                     sentence->arg_b.value.equ_key, sentence->instruction->name, sentence->parsing_line_index);
                 return AS_PARSE_ERROR;
             } else {

@@ -92,6 +92,8 @@ void cs_reset_registers(cs2010 *cs) {
  }
 
 int cs_load_and_check(cs2010 *cs, unsigned short *sentences, size_t sentences_length) {
+    size_t i = 0;
+    
     if (!cs || !sentences) {
         return CS_FAILED;
     }
@@ -100,7 +102,7 @@ int cs_load_and_check(cs2010 *cs, unsigned short *sentences, size_t sentences_le
         return CS_NOT_ENOUGH_ROM;
     }
 
-    for (size_t i = 0; i < sentences_length; i++) {
+    for (i = 0; i < sentences_length; i++) {
         if (!cs_ins_list[CS_GET_OPCODE(sentences[i])].exec) {
             return CS_INVALID_INSTRUCTIONS;
         }

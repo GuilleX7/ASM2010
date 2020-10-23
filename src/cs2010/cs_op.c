@@ -1,6 +1,6 @@
 /** @file cs_op.c */
 
-#include <stdbool.h>
+#include "../utils.h"
 
 #include "cs_instructions.h"
 #include "cs_op.h"
@@ -169,7 +169,7 @@ void cs_op_ret_microstepper(cs2010 *cs) {
     }
 }
 
-inline bool cs_op_check_jmp(cs2010 *cs) {
+bool cs_op_check_jmp(cs2010 *cs) {
     bool jump = false;
     switch (CS_GET_JMP_CONDITION(cs->reg.ir)) {
     case CS_JMP_COND_EQUAL:
@@ -234,7 +234,7 @@ void cs_op_jmp_microstepper(cs2010 *cs) {
     }
 }
 
-inline void cs_op_set_arithmetic_flags(cs2010 *cs, unsigned char a, unsigned char b, unsigned char c) {
+void cs_op_set_arithmetic_flags(cs2010 *cs, unsigned char a, unsigned char b, unsigned char c) {
     /* bit 76543210
     SR  =  0000VNZC
     V: 2's complement overflow
@@ -348,7 +348,7 @@ void cs_op_sec_stepper(cs2010 *cs) {
     cs_fetch(cs);
 }
 
-inline void cs_op_set_ror_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_0, unsigned char c_in) {
+void cs_op_set_ror_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_0, unsigned char c_in) {
     cs->reg.sr =
         (r_7 ^ c_in) << 3 |
         c_in << 2 | /* same as !!(r & (1 << 7)) << 2 */
@@ -390,7 +390,7 @@ void cs_op_ror_microstepper(cs2010 *cs) {
     }
 }
 
-inline void cs_op_set_rol_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_6, unsigned char r_0, unsigned char c_in) {
+void cs_op_set_rol_flags(cs2010 *cs, unsigned char r, unsigned char r_7, unsigned char r_6, unsigned char r_0, unsigned char c_in) {
     cs->reg.sr =
         (r_7 ^ r_6) << 3 |
         r_6 << 2 | /* same as !!(r & (1 << 6)) << 2 */

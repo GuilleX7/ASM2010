@@ -3,9 +3,9 @@
 #ifndef M_ROMGRID_H
 #define M_ROMGRID_H
 
-#include <stdbool.h>
-
 #include <iup/iup.h>
+
+#include "../../utils.h"
 
 struct m_comp_romgrid {
     Ihandle *handler;

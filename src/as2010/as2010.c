@@ -4,7 +4,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif /* _MSC_VER */
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +39,7 @@ static void show_about(void) {
 }
 
 int main(int argc, char **argv) {
-	char *file_str;
+	char *file_str = { 0 };
 	char line[AS_MAX_LINE_LENGTH + 2];
 	size_t offset = 0;
 	char *output_path = { 0 };
@@ -48,6 +47,7 @@ int main(int argc, char **argv) {
 	char const *arg = { 0 };
 	as_parse_info pinfo = { 0 };
 	int status = { 0 };
+	int i = 0;
 
 	if (argc < 2) {
 		show_help();
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 		return EXIT_SUCCESS;
 	}
 
-	for (int i = 2; i < argc; i++) {
+	for (i = 2; i < argc; i++) {
 		arg = argv[i];
 		if (!strcmp(arg, "-o")) {
 			if (i == argc - 1) {

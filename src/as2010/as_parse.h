@@ -4,10 +4,10 @@
 #define AS_PARSE_H
 
 #include <stddef.h>
-#include <stdbool.h>
 
 #include "../cs2010/cs_instructions.h"
 
+#include "../utils.h"
 #include "../hash_table.h"
 #include "../trace_log.h"
 
@@ -25,6 +25,7 @@
 #define AS_ARGUMENT_TYPE_INM 0
 #define AS_ARGUMENT_TYPE_EQU 1
 #define AS_ARGUMENT_TYPE_INVALID 2
+#define AS_ARGUMENT_DEFINE_OF_TYPE(type) {0, type}
 
 #define AS_PARSE_OK 0
 #define AS_PARSE_WARNING 1

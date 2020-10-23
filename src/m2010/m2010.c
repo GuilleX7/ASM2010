@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include <iup/iup.h>
@@ -75,6 +74,7 @@ bool open_machine_code_file(char *filepath, cs2010 *cs) {
 	unsigned short *code = { 0 };
 	size_t code_size = 0;
 	char *disassembly = { 0 };
+	unsigned int i = 0;
 
 	if (!check_machine_running()) {
 		return true;
@@ -94,7 +94,7 @@ bool open_machine_code_file(char *filepath, cs2010 *cs) {
 		return false;
 	}
 
-	for (unsigned int i = 0; i < code_size; i++) {
+	for (i = 0; i < code_size; i++) {
 		disassembly = as_disassemble_sentence(code[i]);
 		if (!disassembly) {
 			disassembly = "???";
@@ -133,6 +133,8 @@ int open_machine_code_file_cb(Ihandle *self) {
 static bool save_disassembled_code_file(char const *filepath) {
 	FILE *file = { 0 };
 	int sentence_size;
+	int i = 0;
+
 	if (!is_cs_ready) {
 		return false;
 	}
@@ -142,7 +144,7 @@ static bool save_disassembled_code_file(char const *filepath) {
 	}
 
 	sentence_size = m_comp_romgrid_get_sentence_count(&rom_gridbox);
-	for (int i = 0; i < sentence_size; i++) {
+	for (i = 0; i < sentence_size; i++) {
 		if (fputs(m_comp_romgrid_get_disassembly(&rom_gridbox, i), file) < 0 ||
 			fputc('\n', file) != '\n') {
 			fclose(file);

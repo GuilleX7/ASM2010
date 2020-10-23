@@ -17,6 +17,7 @@
 static char const *MCS_SIGNATURE = "v2.0 raw";
 
 int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size) {
+    size_t i = 0;
     FILE *file = fopen(filepath, "w");
     int status = MCS_EXPORT_FILE_ERROR;
     if (!file) {
@@ -24,7 +25,7 @@ int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size
     }
 
     fprintf(file, "%s\n", MCS_SIGNATURE);
-    for (size_t i = 0; i < code_size; i++) {
+    for (i = 0; i < code_size; i++) {
         fprintf(file, "%x\n", code[i] & CODE_MAX_VALUE);
     }
 
@@ -34,6 +35,7 @@ int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size
 }
 
 int mcs_import_file(char const *filepath, unsigned short **code, size_t *code_size) {
+    size_t i = 0;
     FILE *file = { 0 };
     long int file_marker = 0;
     int status = 0;
@@ -70,7 +72,7 @@ int mcs_import_file(char const *filepath, unsigned short **code, size_t *code_si
         return MCS_IMPORT_ERROR;
     }
     fseek(file, file_marker, SEEK_SET);
-    for (size_t i = 0; i < *code_size; i++) {
+    for (i = 0; i < *code_size; i++) {
         ufgets(buffer, 16, file);
         buffer_ptr = buffer;
         (*code)[i] = retrieve_value_hexadecimal((const char **) &buffer_ptr, &status, CODE_MAX_VALUE) & CODE_MAX_VALUE;

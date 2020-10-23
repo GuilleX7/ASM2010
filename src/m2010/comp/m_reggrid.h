@@ -27,7 +27,7 @@ enum m_comp_reggrid_reg_idx {
     /* Bar = 18 */
     M_COMP_REGGRID_MDR = 19,
     M_COMP_REGGRID_MAR,
-    M_COMP_REGGRID_LENGTH,
+    M_COMP_REGGRID_LENGTH
 };
 typedef enum m_comp_reggrid_reg_idx m_comp_reggrid_reg_idx;
 

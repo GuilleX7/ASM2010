@@ -5,7 +5,8 @@
 
 #include <stddef.h>
 #include <stdarg.h>
-#include <stdbool.h>
+
+#include "utils.h"
 
 struct trace_log {
 	/** @brief Trace buffer */

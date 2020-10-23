@@ -5,8 +5,13 @@
 
 #include <inttypes.h>
 #include <stddef.h>
-#include <stdbool.h>
 #include <stdio.h>
+
+#ifndef bool
+#define bool int
+#define true 1
+#define false 0
+#endif
 
 #define STRGIFY(a) #a
 #define STRINGIFY(a) STRGIFY(a)

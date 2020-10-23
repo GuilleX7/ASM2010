@@ -80,6 +80,8 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, unsigned short 
     Ihandle *label_content = { 0 };
     Ihandle *label_disassembly = { 0 };
     int element_number = 0;
+    int i = 0;
+
     if (!romgrid) {
         return;
     }
@@ -95,7 +97,7 @@ void m_comp_romgrid_put_at(m_comp_romgrid *romgrid, int address, unsigned short 
         IupSetfAttribute(IupGetChild(gridbox, GET_ROW_IDX(address) + 2), "TITLE", "%s", disassembly);
         IupRefresh(gridbox);
     } else {
-        for (int i = element_number; i < address; i++) {
+        for (i = element_number; i < address; i++) {
             IupAppend(gridbox, (label_address = IupLabel("")));
             IupMap(label_address);
             IupAppend(gridbox, (label_content = IupLabel(CONTENT_UNKNOWN)));

@@ -3,7 +3,7 @@
 #ifndef CS_INSTRUCTIONS_H
 #define CS_INSTRUCTIONS_H
 
-#include <stdbool.h>
+#include "../utils.h"
 
 #include "cs2010.h"
 

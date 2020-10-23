@@ -20,6 +20,7 @@ m_comp_ramgrid m_comp_ramgrid_create(void) {
     m_comp_ramgrid ramgrid = { 0 };
     Ihandle *address_label;
     Ihandle *value_label;
+    size_t i = 0;
 
     ramgrid.handler = IupGridBox(0);
     IupSetAttribute(ramgrid.handler, IUP_MARGIN, "3x0");
@@ -29,7 +30,7 @@ m_comp_ramgrid m_comp_ramgrid_create(void) {
     IupSetInt(ramgrid.handler, "GAPCOL", 10);
     IupSetInt(ramgrid.handler, "SIZECOL", -1);
     IupSetInt(ramgrid.handler, "SIZELIN", -1);
-    for (size_t i = 0; i < NUM_ROWS; i++) {
+    for (i = 0; i < NUM_ROWS; i++) {
         IupAppend(ramgrid.handler, address_label = IupLabel(""));
         IupSetAttribute(address_label, IUP_ALIGNMENT, IUP_ALEFT);
         IupSetStrf(address_label, IUP_TITLE, HEX8_FORMAT, i * NUM_COLS);
@@ -49,22 +50,27 @@ Ihandle *m_comp_ramgrid_get_handler(m_comp_ramgrid *ramgrid) {
 }
 
 void m_comp_ramgrid_set_row(m_comp_ramgrid *ramgrid, int row_address, unsigned char *values) {
+    int idx = 0;
+    
     if (!ramgrid || row_address > (NUM_ROWS * NUM_COLS) - 1) {
         return;
     }
-    int idx = GET_ROW_IDX(row_address);
+
+    idx = GET_ROW_IDX(row_address);
     IupSetStrf(IupGetChild(m_comp_ramgrid_get_handler(ramgrid), idx), IUP_TITLE, CONTENT_FORMAT,
         values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7],
         values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
 }
 
 void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, unsigned char *values) {
-    int idx;
+    int idx = 0;
+    int i = 0;
+
     if (!ramgrid) {
         return;
     }
 
-    for (int i = 0; i < RAM_SIZE; i += 16) {
+    for (i = 0; i < RAM_SIZE; i += 16) {
         idx = GET_ROW_IDX(i);
         IupSetStrf(IupGetChild(m_comp_ramgrid_get_handler(ramgrid), idx), IUP_TITLE, CONTENT_FORMAT,
             values[i], values[i + 1], values[i + 2], values[i + 3], values[i + 4], values[i + 5], values[i + 6], values[i + 7],
@@ -73,11 +79,14 @@ void m_comp_ramgrid_set_all(m_comp_ramgrid *ramgrid, unsigned char *values) {
 }
 
 void m_comp_ramgrid_clear(m_comp_ramgrid *ramgrid) {
+    unsigned char zero[NUM_COLS] = { 0 };
+    int i = 0;
+    
     if (!ramgrid) {
         return;
     }
-    unsigned char zero[NUM_COLS] = { 0 };
-    for (int i = 0; i < NUM_ROWS; i++) {
+
+    for (i = 0; i < NUM_ROWS; i++) {
         m_comp_ramgrid_set_row(ramgrid, i * NUM_COLS, zero);
     }
 }

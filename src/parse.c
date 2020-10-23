@@ -32,19 +32,21 @@ int search_character(char const **lineptr, char ch, int skip_spaces(char const**
 
 char *retrieve_alnum_identifier(char const **lineptr, size_t max_len, int skip_spaces(char const **)) {
     char *identifier;
+    size_t i = 0;
 
-    if (skip_spaces(lineptr) == PARSE_LINE_END)
+    if (skip_spaces(lineptr) == PARSE_LINE_END) {
         return 0;
+    }
 
-    if (!isalpha((unsigned char) **lineptr))
+    if (!isalpha((unsigned char) **lineptr)) {
         return 0;
+    }
 
     identifier = malloc((max_len + 1) * sizeof(char));
     if (!identifier) {
         return 0;
     }
 
-    size_t i = 0;
     while ((isalnum((unsigned char) **lineptr) || **lineptr == '_') && i < max_len) {
         *(identifier + i) = **lineptr;
         (*lineptr)++;

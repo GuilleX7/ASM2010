@@ -6,307 +6,223 @@
 #include "cs_op.h"
 #include "cs_instructions.h"
 
+#define CS_INS_DEFINE(index, name, opcode, format, exec, stepper, microstepper, fl1, fl2, fl3, fl4, fl5) \
+    {{fl1, fl2, fl3, fl4, fl5}, index, name, stepper, microstepper, opcode, format, exec}
+#define CS_INS_DEFINE_EMPTY {0}
+
 cs_instruction const cs_ins_list[] = {
-    [CS_INS_I_ST] = {
-        .exec = true,
-        .index = CS_INS_I_ST,
-        .name = "ST",
-        .opcode = 0x0,
-        .format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
-            CS_SIGNAL_WMEM | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_st_stepper,
-        .microstepper = cs_op_st_microstepper,
-    },
-    [CS_INS_I_LD] = {
-        .exec = true,
-        .index = CS_INS_I_LD,
-        .name = "LD",
-        .opcode = 0x1,
-        .format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
-            CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
-            CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_ld_stepper,
-        .microstepper = cs_op_ld_microstepper,
-    },
-    [CS_INS_I_STS] = {
-        .exec = true,
-        .index = CS_INS_I_STS,
-        .name = "STS",
-        .opcode = 0x2,
-        .format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
-            CS_SIGNAL_WMEM | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_sts_stepper,
-        .microstepper = cs_op_sts_microstepper,
-    },
-    [CS_INS_I_LDS] = {
-        .exec = true,
-        .index = CS_INS_I_LDS,
-        .name = "LDS",
-        .opcode = 0x3,
-        .format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
-            CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_lds_stepper,
-        .microstepper = cs_op_lds_microstepper,
-    },
-    [CS_INS_I_CALL] = {
-        .exec = true,
-        .index = CS_INS_I_CALL,
-        .name = "CALL",
-        .opcode = 0x4,
-        .format = CS_INS_FORMAT_C,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM | CS_SIGNAL_RPC | CS_SIGNAL_WMDR,
-            CS_SIGNAL_RSP | CS_SIGNAL_DSP | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RAC | CS_SIGNAL_WPC | CS_SIGNAL_WMEM,
-            CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_call_stepper,
-        .microstepper = cs_op_call_microstepper,
-    },
-    [CS_INS_I_RET] = {
-        .exec = true,
-        .index = CS_INS_I_RET,
-        .name = "RET",
-        .opcode = 0x5,
-        .format = CS_INS_FORMAT_E,
-        .signals = {
-            CS_SIGNAL_ISP,
-            CS_SIGNAL_RSP | CS_SIGNAL_WMAR,
-            CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
-            CS_SIGNAL_WPC | CS_SIGNAL_IOMDR,
-            CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_ret_stepper,
-        .microstepper = cs_op_ret_microstepper,
-    },
-    [CS_INS_I_BRXX] = {
-        .exec = true,
-        .index = CS_INS_I_BRXX,
-        .name = 0,
-        .opcode = 0x6,
-        .format = CS_INS_FORMAT_C,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_RAC | CS_SIGNAL_WPC,
-            CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_brxx_stepper,
-        .microstepper = cs_op_brxx_microstepper,
-    },
-    [CS_INS_I_JMP] = {
-        .exec = true,
-		.index = CS_INS_I_JMP,
-		.name = "JMP",
-		.opcode = 0x7,
-		.format = CS_INS_FORMAT_C,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_RAC | CS_SIGNAL_WPC,
-            CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_jmp_stepper,
-        .microstepper = cs_op_jmp_microstepper,
-	},
-    [CS_INS_I_ADD] = {
-        .exec = true,
-		.index = CS_INS_I_ADD,
-		.name = "ADD",
-		.opcode = 0x8,
-		.format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_add_stepper,
-        .microstepper = cs_op_add_microstepper,
-	},
-    [CS_INS_I_SUB] = {
-        .exec = true,
-		.index = CS_INS_I_SUB,
-		.name = "SUB",
-		.opcode = 0xa,
-		.format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_sub_stepper,
-        .microstepper = cs_op_sub_microstepper,
-	},
-    [CS_INS_I_CP] = {
-        .exec = true,
-		.index = CS_INS_I_CP,
-		.name = "CP",
-		.opcode = 0xb,
-		.format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_cp_stepper,
-        .microstepper = cs_op_cp_stepper,
-	},
-    [CS_INS_I_MOV] = {
-        .exec = true,
-		.index = CS_INS_I_MOV,
-		.name = "MOV",
-		.opcode = 0xf,
-		.format = CS_INS_FORMAT_A,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_mov_stepper,
-        .microstepper = cs_op_mov_microstepper,
-	},
-    [CS_INS_I_CLC] = {
-        .exec = true,
-		.index = CS_INS_I_CLC,
-		.name = "CLC",
-		.opcode = 0x12,
-		.format = CS_INS_FORMAT_E,
-        .signals = {
-            CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_clc_stepper,
-        .microstepper = cs_op_clc_stepper,
-	},
-    [CS_INS_I_SEC] = {
-        .exec = true,
-		.index = CS_INS_I_SEC,
-		.name = "SEC",
-		.opcode = 0x13,
-		.format = CS_INS_FORMAT_E,
-        .signals = {
-            CS_SIGNAL_ALUOP1 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_sec_stepper,
-        .microstepper = cs_op_sec_stepper,
-	},
-    [CS_INS_I_ROR] = {
-        .exec = true,
-		.index = CS_INS_I_ROR,
-		.name = "ROR",
-		.opcode = 0x14,
-		.format = CS_INS_FORMAT_D,
-        .signals = {
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_ror_stepper,
-        .microstepper = cs_op_ror_microstepper,
-	},
-    [CS_INS_I_ROL] = {
-        .exec = true,
-		.index = CS_INS_I_ROL,
-		.name = "ROL",
-		.opcode = 0x15,
-		.format = CS_INS_FORMAT_D,
-        .signals = {
-            CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_rol_stepper,
-        .microstepper = cs_op_rol_microstepper,
-	},
-    [CS_INS_I_STOP] = {
-        .exec = true,
-		.index = CS_INS_I_STOP,
-		.name = "STOP",
-		.opcode = 0x17,
-		.format = CS_INS_FORMAT_E,
-        .signals = {
-            CS_SIGNALS_NONE
-        },
-        .stepper = cs_op_stop_stepper,
-        .microstepper = cs_op_stop_stepper,
-	},
-    [CS_INS_I_ADDI] = {
-        .exec = true,
-		.index = CS_INS_I_ADDI,
-		.name = "ADDI",
-		.opcode = 0x18,
-		.format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_addi_stepper,
-        .microstepper = cs_op_addi_microstepper,
-	},
-    [CS_INS_I_SUBI] = {
-        .exec = true,
-		.index = CS_INS_I_SUBI,
-		.name = "SUBI",
-		.opcode = 0x1a,
-		.format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_subi_stepper,
-        .microstepper = cs_op_subi_microstepper,
-	},
-    [CS_INS_I_CPI] = {
-        .exec = true,
-        .index = CS_INS_I_CPI,
-        .name = "CPI",
-        .opcode = 0x1b,
-        .format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_cpi_stepper,
-        .microstepper = cs_op_cpi_stepper,
-    },
-    [CS_INS_I_LDI] = {
-        .exec = true,
-        .index = CS_INS_I_LDI,
-        .name = "LDI",
-        .opcode = 0x1f,
-        .format = CS_INS_FORMAT_B,
-        .signals = {
-            CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
-            CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH
-        },
-        .stepper = cs_op_ldi_stepper,
-        .microstepper = cs_op_ldi_microstepper,
-    },
+    CS_INS_DEFINE(CS_INS_I_ST, "ST", 0x0, CS_INS_FORMAT_A, true, cs_op_st_stepper, cs_op_st_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
+        CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
+        CS_SIGNAL_WMEM | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_LD, "LD", 0x1, CS_INS_FORMAT_A, true, cs_op_st_stepper, cs_op_st_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
+        CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
+        CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_STS, "STS", 0x2, CS_INS_FORMAT_B, true, cs_op_sts_stepper, cs_op_sts_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
+        CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_RAC | CS_SIGNAL_WAC | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RAC | CS_SIGNAL_WMDR,
+        CS_SIGNAL_WMEM | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_LDS, "LDS", 0x3, CS_INS_FORMAT_B, true, cs_op_lds_stepper, cs_op_lds_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
+        CS_SIGNAL_RAC | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
+        CS_SIGNAL_WREG | CS_SIGNAL_IOMDR | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_CALL, "CALL", 0x4, CS_INS_FORMAT_C, true, cs_op_call_stepper, cs_op_call_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM | CS_SIGNAL_RPC | CS_SIGNAL_WMDR,
+        CS_SIGNAL_RSP | CS_SIGNAL_DSP | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RAC | CS_SIGNAL_WPC | CS_SIGNAL_WMEM,
+        CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_RET, "RET", 0x5, CS_INS_FORMAT_E, true, cs_op_ret_stepper, cs_op_ret_microstepper,
+        CS_SIGNAL_ISP,
+        CS_SIGNAL_RSP | CS_SIGNAL_WMAR,
+        CS_SIGNAL_RMEM | CS_SIGNAL_IOMDR | CS_SIGNAL_WMDR,
+        CS_SIGNAL_WPC | CS_SIGNAL_IOMDR,
+        CS_SIGNALS_FETCH
+    ),
+    CS_INS_DEFINE(CS_INS_I_BRXX, 0, 0x6, CS_INS_FORMAT_C, true, cs_op_brxx_stepper, cs_op_brxx_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
+        CS_SIGNAL_RAC | CS_SIGNAL_WPC,
+        CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_JMP, "JMP", 0x7, CS_INS_FORMAT_C, true, cs_op_jmp_stepper, cs_op_jmp_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
+        CS_SIGNAL_RAC | CS_SIGNAL_WPC,
+        CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_ADD, "ADD", 0x8, CS_INS_FORMAT_A, true, cs_op_add_stepper, cs_op_add_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_SUB, "SUB", 0xa, CS_INS_FORMAT_A, true, cs_op_sub_stepper, cs_op_sub_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_CP, "CP", 0xb, CS_INS_FORMAT_A, true, cs_op_cp_stepper, cs_op_cp_stepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_MOV, "MOV", 0xf, CS_INS_FORMAT_A, true, cs_op_mov_stepper, cs_op_mov_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_CLC, "CLC", 0x12, CS_INS_FORMAT_E, true, cs_op_clc_stepper, cs_op_clc_stepper,
+        CS_SIGNAL_SRW | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_SEC, "SEC", 0x13, CS_INS_FORMAT_E, true, cs_op_sec_stepper, cs_op_sec_stepper,
+        CS_SIGNAL_ALUOP1 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_SRW | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_ROR, "ROR", 0x14, CS_INS_FORMAT_D, true, cs_op_ror_stepper, cs_op_ror_microstepper,
+        CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_ROL, "ROL", 0x15, CS_INS_FORMAT_D, true, cs_op_rol_stepper, cs_op_rol_microstepper,
+        CS_SIGNAL_ALUOP2 | CS_SIGNAL_ALUOP0 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_STOP, "STOP", 0x17, CS_INS_FORMAT_E, true, cs_op_stop_stepper, cs_op_stop_stepper,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_ADDI, "ADDI", 0x18, CS_INS_FORMAT_B, true, cs_op_addi_stepper, cs_op_addi_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_SUBI, "SUBI", 0x1a, CS_INS_FORMAT_B, true, cs_op_subi_stepper, cs_op_subi_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_WAC | CS_SIGNAL_SRW | CS_SIGNAL_INM,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_CPI, "CPI", 0x1b, CS_INS_FORMAT_B, true, cs_op_cpi_stepper, cs_op_cpi_stepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP1 | CS_SIGNAL_SRW | CS_SIGNAL_INM | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE_EMPTY,
+    CS_INS_DEFINE(CS_INS_I_LDI, "LDI", 0x1f, CS_INS_FORMAT_B, true, cs_op_ldi_stepper, cs_op_ldi_microstepper,
+        CS_SIGNAL_ALUOP3 | CS_SIGNAL_ALUOP2 | CS_SIGNAL_WAC | CS_SIGNAL_INM,
+        CS_SIGNAL_WREG | CS_SIGNAL_RAC | CS_SIGNALS_FETCH,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
     /* BR-like instructions */
-    [CS_INS_I_BRZS] = { .index = CS_INS_I_BRZS, .name = "BRZS", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
-    [CS_INS_I_BREQ] = { .index = CS_INS_I_BREQ, .name = "BREQ", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
-    [CS_INS_I_BRCS] = { .index = CS_INS_I_BRCS, .name = "BRCS", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
-    [CS_INS_I_BRLO] = { .index = CS_INS_I_BRLO, .name = "BRLO", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
-    [CS_INS_I_BRVS] = { .index = CS_INS_I_BRVS, .name = "BRVS", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
-    [CS_INS_I_BRLT] = { .index = CS_INS_I_BRLT, .name = "BRLT", .opcode = 0x6, .format = CS_INS_FORMAT_C, },
+    CS_INS_DEFINE(CS_INS_I_BRZS, "BRZS", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_BREQ, "BREQ", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_BRCS, "BRCS", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_BRLO, "BRLO", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_BRVS, "BRVS", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    ),
+    CS_INS_DEFINE(CS_INS_I_BRLT, "BRLT", 0x6, CS_INS_FORMAT_C, false, 0, 0,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE,
+        CS_SIGNALS_NONE
+    )
 };
 
 static hash_table ht = { 0 };
 static bool ht_initiated = false;
 
 bool cs_ins_search_start(void) {
+    size_t i = 0;
     if (ht_initiated || !hash_table_init(&ht)) {
         return false;
     }
-    for (size_t i = 0; i < CS_INS_LEN; i++) {
+    for (i = 0; i < CS_INS_LEN; i++) {
         if (cs_ins_list[i].name) {
             if (!hash_table_put(&ht, cs_ins_list[i].name, &i)) {
                 hash_table_free(&ht);

@@ -3,8 +3,9 @@
 #ifndef CS2010_H
 #define CS2010_H
 
-#include <stdbool.h>
 #include <stddef.h>
+
+#include "../utils.h"
 
 #include "cs_memory.h"
 #include "cs_registers.h"

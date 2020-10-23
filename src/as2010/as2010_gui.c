@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <locale.h>
 
 #include "../../include/iup/iup.h"
@@ -156,16 +155,18 @@ static void trace(Ihandle *multitext, char const *str) {
 static int parse_source(Ihandle *window, as_parse_info *pinfo) {
 	Ihandle *source_multitext = IupGetDialogChild(window, "SOURCE_MULTITEXT");
 	Ihandle *status_multitext = IupGetChild(IupGetDialogChild(window, "STATUS_VBOX"), 0);
+	char *str = { 0 };
+	char buf[AS_MAX_LINE_LENGTH + 2];
+	size_t offset = 0;
+	int status = 0;
+
 	IupSetAttribute(status_multitext, "VALUE", "");
-	char *str = allocstrcpy(IupGetAttribute(source_multitext, "VALUE"));
+	str = allocstrcpy(IupGetAttribute(source_multitext, "VALUE"));
 	if (!str) {
 		trace(status_multitext, "Memory exhaustion detected, aborting assembly...\n");
 		return AS_PARSE_ERROR;
 	}
-	char buf[AS_MAX_LINE_LENGTH + 2];
-	size_t offset = 0;
-
-	int status;
+	
 	while (read_upper_line(buf, AS_MAX_LINE_LENGTH + 2, str, &offset)) {
 		status = as_parse_line(pinfo, buf);
 		trace(status_multitext, trace_log_get(&pinfo->log));
