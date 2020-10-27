@@ -122,7 +122,12 @@ bool read_upper_line(char *line, size_t max_length, char const *const str, size_
         i++;
     }
     line[i] = '\0';
-    if (str[*offset] == '\n') (*offset)++;
+    if (str[*offset] == '\n') {
+        if (line[i - 1] == '\r') { /* Detect Windows end of line */
+            line[i - 1] = '\0';
+        }
+        (*offset)++;
+    }
     if (str[*offset] == '\0' && !i) return false;
     return true;
 }

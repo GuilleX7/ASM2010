@@ -13,8 +13,9 @@
 #include "mcs.h"
 
 #define CODE_MAX_VALUE 0xFFFF
+#define MAX_LINE_LENGTH 16 /* 16 bytes should be more than enough */
 
-static char const *MCS_SIGNATURE = "v2.0 raw";
+static char const *MCS_SIGNATURE = "V2.0 RAW";
 
 int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size) {
     size_t i = 0;
@@ -35,53 +36,51 @@ int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size
 }
 
 int mcs_import_file(char const *filepath, unsigned short **code, size_t *code_size) {
+    char *str = read_file(filepath);
+    char line[MAX_LINE_LENGTH];
+    char const *lineptr = 0;
+    size_t offset = 0;
+    size_t code_offset = 0;
     size_t i = 0;
-    FILE *file = { 0 };
-    long int file_marker = 0;
-    int status = 0;
-    char buffer[16];
-    char *buffer_ptr = { 0 };
+    int status;
+    *code = 0;
 
-    file = fopen(filepath, "r");
-    if (!file) {
+    if (!str) {
         return MCS_IMPORT_FILE_ERROR;
     }
-
-    /* 16 bytes should be enough, 2^32 can be codificated with
-        8 characters plus the new line and the null character */
-    if (!ufgets(buffer, 16, file) || strncmp(MCS_SIGNATURE, buffer, strlen(MCS_SIGNATURE))) {
-        fclose(file);
+    if (!read_upper_line(line, MAX_LINE_LENGTH, str, &offset) ||
+        strcmp(line, MCS_SIGNATURE)) {
+        free(str);
         return MCS_IMPORT_ERROR;
     }
 
-    /* Valid MCS file */
-    /* Get line count; 1 line = 1 sentence */
+    /* Valid signature, save the code offset */
+    code_offset = offset;
+    /* Check size */
     *code_size = 0;
-    file_marker = ftell(file);
-    while (ufgets(buffer, 16, file)) {
+    while (read_upper_line(line, MAX_LINE_LENGTH, str, &offset)) {
         (*code_size)++;
     }
     if (*code_size < 1) {
-        fclose(file);
+        free(str);
         return MCS_IMPORT_ERROR;
     }
-
-    *code = malloc(sizeof **code * *code_size);
-    if (!*code) {
-        fclose(file);
+    /* Read code */
+    *code = malloc(sizeof(**code) * *code_size);
+    if (!code) {
+        free(str);
         return MCS_IMPORT_ERROR;
     }
-    fseek(file, file_marker, SEEK_SET);
-    for (i = 0; i < *code_size; i++) {
-        ufgets(buffer, 16, file);
-        buffer_ptr = buffer;
-        (*code)[i] = retrieve_value_hexadecimal((const char **) &buffer_ptr, &status, CODE_MAX_VALUE) & CODE_MAX_VALUE;
+    for (i = 0; read_upper_line(line, MAX_LINE_LENGTH, str, &code_offset); i++) {
+        lineptr = line;
+        (*code)[i] = (unsigned short) retrieve_value_hexadecimal(&lineptr, &status, CODE_MAX_VALUE);
         if (status != RETRIEVE_VALUE_OK) {
-            fclose(file);
             free(*code);
+            free(str);
+            *code = 0;
             return MCS_IMPORT_ERROR;
         }
     }
-    fclose(file);
+
     return MCS_IMPORT_SUCCESS;
 }

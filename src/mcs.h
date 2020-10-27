@@ -29,7 +29,8 @@ int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size
 /**
  * @brief Imports a MachineCS file
  * @param fìlepath Input file
- * @param code Will point to an array containing the machine code
+ * @param code Will point to an array containing the machine code,
+ *              or null pointer if couldn't load the code
  * @param code_size Size of the loaded machine code (16-bit words)
  * @return MCS_IMPORT_SUCCESS if succeded,
  *         MCS_IMPORT_FILE_ERROR if couldn't open the file or
