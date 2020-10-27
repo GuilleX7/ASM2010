@@ -273,6 +273,7 @@ void cs_op_add_microstepper(cs2010 *cs) {
         cs_op_set_arithmetic_flags(cs, *a, *b, c);
         cs->reg.ac = c;
         cs_microfetch(cs);
+        break;
     case 1:
     default:
         *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)] = cs->reg.ac;
@@ -303,6 +304,7 @@ void cs_op_sub_microstepper(cs2010 *cs) {
         cs_op_set_arithmetic_flags(cs, *a, b, c);
         cs->reg.ac = c;
         cs_microfetch(cs);
+        break;
     case 1:
     default:
         *cs->reg.regfile[CS_GET_REG_A(cs->reg.ir)] = cs->reg.ac;
