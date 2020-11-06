@@ -15,7 +15,8 @@
 #define CODE_MAX_VALUE 0xFFFF
 #define MAX_LINE_LENGTH 16 /* 16 bytes should be more than enough */
 
-static char const *MCS_SIGNATURE = "V2.0 RAW";
+static char const *UPPER_MCS_SIGNATURE = "V2.0 RAW";
+static char const *LOWER_MCS_SIGNATURE = "v2.0 raw";
 
 int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size) {
     size_t i = 0;
@@ -25,7 +26,7 @@ int mcs_export_file(char const *filepath, unsigned short *code, size_t code_size
         return status;
     }
 
-    fprintf(file, "%s\n", MCS_SIGNATURE);
+    fprintf(file, "%s\n", LOWER_MCS_SIGNATURE);
     for (i = 0; i < code_size; i++) {
         fprintf(file, "%x\n", code[i] & CODE_MAX_VALUE);
     }
@@ -49,7 +50,7 @@ int mcs_import_file(char const *filepath, unsigned short **code, size_t *code_si
         return MCS_IMPORT_FILE_ERROR;
     }
     if (!read_upper_line(line, MAX_LINE_LENGTH, str, &offset) ||
-        strcmp(line, MCS_SIGNATURE)) {
+        strcmp(line, UPPER_MCS_SIGNATURE)) {
         free(str);
         return MCS_IMPORT_ERROR;
     }
