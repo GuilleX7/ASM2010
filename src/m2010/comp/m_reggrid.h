@@ -14,18 +14,15 @@ enum m_comp_reggrid_reg_idx {
     M_COMP_REGGRID_R5,
     M_COMP_REGGRID_R6,
     M_COMP_REGGRID_R7,
-    /* Bar 8 */
-    M_COMP_REGGRID_PC = 9,
+    M_COMP_REGGRID_PC,
     M_COMP_REGGRID_SP,
     M_COMP_REGGRID_IR,
-    /* Bar = 12 */
-    M_COMP_REGGRID_AC = 13,
+    M_COMP_REGGRID_AC,
     M_COMP_REGGRID_SR_V,
     M_COMP_REGGRID_SR_N,
     M_COMP_REGGRID_SR_Z,
     M_COMP_REGGRID_SR_C,
-    /* Bar = 18 */
-    M_COMP_REGGRID_MDR = 19,
+    M_COMP_REGGRID_MDR,
     M_COMP_REGGRID_MAR,
     M_COMP_REGGRID_LENGTH
 };
