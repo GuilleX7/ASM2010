@@ -113,15 +113,19 @@ size_t retrieve_value_binary(char const **lineptr, int *status, size_t max_value
 size_t retrieve_value_decimal(char const **lineptr, int *status, size_t max_value);
 
 /**
- * @brief Checks whether a given unsigned number (accumulator) would wrap
- *      after multiplying it by a number and adding another number.
- * @param accumulator Value accumulated (to be multiplied and added)
- * @param addend Value to be added to accumulator
- * @param multiplier Multiplier value
- * @param max Maximum value for accumulator that won't wrap after
- *          carrying out the operations
- * @return true if the accumulator would wrap, false otherwise
+ * @brief Checks whether two size_t will wrap when added
+ * @param a First addend
+ * @param b Second addend
+ * @return true if addition wraps, false otherwise
 */
-bool check_unsigned_wrap(size_t accumulator, size_t addend, size_t multiplier, size_t max);
+bool check_unsigned_add_wrap(size_t a, size_t b);
+
+/**
+ * @brief Checks whether two size_t will wrap when multiplied
+ * @param a First factor
+ * @param b Second factor
+ * @return true if multiplication wraps, false otherwise
+*/
+bool check_unsigned_multiply_wrap(size_t a, size_t b);
 
 #endif /* PARSE_H */
