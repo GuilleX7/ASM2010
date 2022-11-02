@@ -18,7 +18,11 @@ All source code is written in compliant C89, trying to ensure portability across
 No external dependencies.
 
 #### as2010-gui & m2010
-The external dependency is **IUP** (https://www.tecgraf.puc-rio.br/iup/), which is a lightweight, multiplatform C GUI library. This repository provides an already built version of this library for Windows-MSVC, Windows-MinGW and GNU/Linux-GCC, each of them both in x86 and x64. However, you can choose to link against your own library: install your own version of the library in the lib{arch}/ folder by turning off ASM2010_DEFAULT_LIB, so CMake will tell the linker to look in lib{arch}/ instead of lib{arch}/{platform}. Then, change the CMakeLists file in order to link with your IUP library and all its dependencies by changing the IUP_LIBS list.
+The external dependency is **IUP** (https://www.tecgraf.puc-rio.br/iup/), which is a lightweight, multiplatform C GUI library. This repository provides an already built version of this library for Windows-MSVC, Windows-MinGW and GNU/Linux-GCC, each of them both in x86 and x64. However, you can choose to link against your own library:
+
+- Put your own version of the library inside lib{arch}/
+- Turn off ASM2010_DEFAULT_LIB in the CMake cache
+- Change the list of IUP libraries that will be linked (IUP_LIBS)
 
 ## Logisim version
 The directory named "logisim" contains two Logisim implementations of the CS2010: one extended with IO and one without.
