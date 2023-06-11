@@ -1,0 +1,1 @@
+option('build_shared', type: 'boolean', value: true, description: 'Build shared library')
