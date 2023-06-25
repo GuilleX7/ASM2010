@@ -1,6 +1,7 @@
 #include "as_disassemble.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../include/asm2010.h"
 
@@ -44,36 +45,38 @@ static char *_as_disassemble_instruction(unsigned short machine_instruction, cs_
             }
 
             if (instruction->index == CS_INS_I_LD && platform == CS_PLATFORM_2010) {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, (R%u)", instruction->name, arg_a, arg_b);
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s R%u, (R%u)", instruction->name, arg_a,
+                         arg_b);
             } else if (instruction->index == CS_INS_I_LD && platform == CS_PLATFORM_3) {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, %c", instruction->name, arg_a,
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s R%u, %c", instruction->name, arg_a,
                          CS3_REGISTER_GET_INDIRECT_NAME(arg_b));
             } else if (instruction->index == CS_INS_I_ST && platform == CS_PLATFORM_2010) {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s (R%u), R%u", instruction->name, arg_b, arg_a);
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s (R%u), R%u", instruction->name, arg_b,
+                         arg_a);
             } else if (instruction->index == CS_INS_I_ST && platform == CS_PLATFORM_3) {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s %c, R%u", instruction->name,
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s %c, R%u", instruction->name,
                          CS3_REGISTER_GET_INDIRECT_NAME(arg_b), arg_a);
             } else {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, R%u", instruction->name, arg_a, arg_b);
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s R%u, R%u", instruction->name, arg_a, arg_b);
             }
             break;
         case CS_INS_FORMAT_B:
             if (instruction->index == CS_INS_I_STS) {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s " HEX8_X_FORMAT ", R%u", instruction->name,
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s " HEX8_X_FORMAT ", R%u", instruction->name,
                          arg_b, arg_a);
             } else {
-                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u, " HEX8_X_FORMAT, instruction->name, arg_a,
-                         arg_b);
+                snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s R%u, " HEX8_X_FORMAT, instruction->name,
+                         arg_a, arg_b);
             }
             break;
         case CS_INS_FORMAT_C:
-            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s " HEX8_X_FORMAT, instruction->name, arg_b);
+            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s " HEX8_X_FORMAT, instruction->name, arg_b);
             break;
         case CS_INS_FORMAT_D:
-            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s R%u", instruction->name, arg_a);
+            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s R%u", instruction->name, arg_a);
             break;
         case CS_INS_FORMAT_E:
-            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH, "%s", instruction->name);
+            snprintf(output_buffer, AS_MAX_DISASSEMBLY_LENGTH - 1, "%s", instruction->name);
             break;
         default:
             valid = false;
@@ -104,18 +107,26 @@ char *cs_as_disassemble_instruction(unsigned short machine_instruction, cs_platf
 char *cs_as_disassemble_instructions(unsigned short *machine_instructions, size_t machine_instructions_amount,
                                      cs_platform platform) {
     size_t i;
+    char  *disassembly_line;
     char  *disassembly_code;
 
-    disassembly_code = malloc(sizeof(char) * AS_MAX_DISASSEMBLY_LENGTH * machine_instructions_amount);
-    if (!disassembly_code) {
+    disassembly_line = malloc(sizeof(char) * AS_MAX_DISASSEMBLY_LENGTH);
+    if (!disassembly_line) {
         return 0;
     }
 
+    disassembly_code = malloc(sizeof(char) * AS_MAX_DISASSEMBLY_LENGTH * machine_instructions_amount);
+    if (!disassembly_code) {
+        free(disassembly_line);
+        return 0;
+    }
+    disassembly_code[0] = '\0';
+
     for (i = 0; i < machine_instructions_amount; i++) {
-        if (!_as_disassemble_instruction(machine_instructions[i], platform,
-                                         disassembly_code + i * AS_MAX_DISASSEMBLY_LENGTH)) {
-            disassembly_code[i * AS_MAX_DISASSEMBLY_LENGTH] = '\0';
+        if (_as_disassemble_instruction(machine_instructions[i], platform, disassembly_line)) {
+            strncat(disassembly_code, disassembly_line, AS_MAX_DISASSEMBLY_LENGTH - 1);
         }
+        strncat(disassembly_code, "\n", 1);
     }
 
     return disassembly_code;

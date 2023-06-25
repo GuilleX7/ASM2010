@@ -104,7 +104,7 @@ int cs_load_machine_instructions(cs_machine *cs, unsigned short *machine_instruc
 
     cs_clear_memory(cs, true, true);
     cs_reset_registers(cs);
-    memcpy(cs->memory.rom, machine_instructions, machine_instructions_amount);
+    memcpy(cs->memory.rom, machine_instructions, machine_instructions_amount * sizeof(*machine_instructions));
     cs_fetch(cs);
     return CS_LOAD_OK;
 }
@@ -149,19 +149,20 @@ void cs_fullstep(cs_machine *cs) {
 
 bool cs_blockstep(cs_machine *cs, size_t max_instructions) {
     unsigned char opcode;
+    size_t        remaining_instructions = max_instructions;
 
-    cs_fullstep(cs);
-    max_instructions--;
-
-    opcode = CS_GET_OPCODE(cs->registers.ir);
-    while (max_instructions > 0 && opcode != CS_INS_I_JMP && opcode != CS_INS_I_BRXX && opcode != CS_INS_I_CALL &&
-           !cs->stopped) {
-        cs_step(cs);
-        opcode = CS_GET_OPCODE(cs->registers.ir);
-        max_instructions--;
+    if (!remaining_instructions) {
+        return false;
     }
 
-    return true;
+    do {
+        cs_fullstep(cs);
+        opcode = CS_GET_OPCODE(cs->registers.ir);
+        remaining_instructions--;
+    } while (remaining_instructions > 0 && opcode != CS_INS_I_JMP && opcode != CS_INS_I_BRXX &&
+             opcode != CS_INS_I_CALL && !cs->stopped);
+
+    return remaining_instructions != 0;
 }
 
 void cs_hard_reset(cs_machine *cs, bool clear_rom) {

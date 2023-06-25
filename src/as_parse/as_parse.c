@@ -720,7 +720,7 @@ int cs_as_parse_init(cs_as_parse_info *parsing_info, size_t max_parsed_sentences
         trace_log_free(&parsing_info->log);
         cs_ins_search_stop();
         free(parsing_info->parsed_sentences);
-        return 6000;
+        return CS_AS_PARSE_INIT_NOT_ENOUGH_MEMORY;
     }
 
     parsing_info->machine_code.matching_source_assembly_lines =
@@ -856,7 +856,7 @@ int cs_as_parse_assemble(cs_as_parse_info *parsing_info, bool stop_on_error) {
             value_ptr = hash_table_get(&parsing_info->equs_ht, sentence->arg_a.value.equ_key);
             if (!value_ptr) {
                 trace_log_printf(&parsing_info->log,
-                                 "[Error] equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n ",
+                                 "[Error] equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
                                  sentence->arg_a.value.equ_key, sentence->instruction->name,
                                  sentence->parsing_source_line_index);
                 if (stop_on_error) {
@@ -876,7 +876,7 @@ int cs_as_parse_assemble(cs_as_parse_info *parsing_info, bool stop_on_error) {
             value_ptr = hash_table_get(&parsing_info->equs_ht, sentence->arg_b.value.equ_key);
             if (!value_ptr) {
                 trace_log_printf(&parsing_info->log,
-                                 "[Error] equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n ",
+                                 "[Error] equ '%s' of instruction '%s' at line %" PRI_SIZET " couldn't be resolved\n",
                                  sentence->arg_b.value.equ_key, sentence->instruction->name,
                                  sentence->parsing_source_line_index);
                 if (stop_on_error) {

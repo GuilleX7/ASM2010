@@ -15,6 +15,6 @@ main: LDI R0, HEX_DISPLAY
 loop: LD R3, (R1)           ; Get pressed button
       CPI R3, 0             ; Check for any pressed
       BREQ loop
-      LD R3, (R2)           ; Get a new, random number
+      LD R3, (R2)           ; Get a random number
       ST (R0), R3           ; Show it on the display
       JMP loop

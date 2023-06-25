@@ -7,7 +7,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 set(CMAKE_SHARED_LIBRARY_PREFIX_C "")
 set(CMAKE_STATIC_LIBRARY_PREFIX_C "lib")
 
-option(ASM2010_BUILD_STATIC "Build a static library" ON)
 option(ASM2010_BUILD_SHARED "Build a shared library" ON)
 
 set(ASM2010_SOURCE
@@ -50,23 +49,21 @@ if(MSVC)
 else()
     set(ASM2010_COMPILE_OPTIONS "-Wall" "-Wextra" "$<$<CONFIG:RELEASE>:-O3>")
 endif()
-set(ASM2010_PROPERTIES OUTPUT_NAME asm2010 C_VISIBILITY_PRESET hidden)
+set(ASM2010_PROPERTIES OUTPUT_NAME ASM2010 C_VISIBILITY_PRESET hidden)
 
-if(ASM2010_BUILD_STATIC)
-    add_library(ASM2010_static STATIC ${ASM2010_SOURCE})
-    set_target_properties(ASM2010_static PROPERTIES ${ASM2010_PROPERTIES})
-    target_compile_options(ASM2010_static PUBLIC ${ASM2010_COMPILE_OPTIONS})
-endif()
+add_library(libASM2010 STATIC ${ASM2010_SOURCE})
+set_target_properties(libASM2010 PROPERTIES ${ASM2010_PROPERTIES})
+target_compile_options(libASM2010 PUBLIC ${ASM2010_COMPILE_OPTIONS})
 
 if(ASM2010_BUILD_SHARED)
-    add_library(ASM2010_shared SHARED ${ASM2010_SOURCE})
-    set_target_properties(ASM2010_shared PROPERTIES ${ASM2010_PROPERTIES})
-    target_compile_options(ASM2010_shared PUBLIC ${ASM2010_COMPILE_OPTIONS})
+    add_library(ASM2010 SHARED ${ASM2010_SOURCE})
+    set_target_properties(ASM2010 PROPERTIES ${ASM2010_PROPERTIES})
+    target_compile_options(ASM2010 PUBLIC ${ASM2010_COMPILE_OPTIONS})
 
     # Some tweaks for WASM/WASI 
     if (WASI)
-        target_link_options(ASM2010_shared PUBLIC "-Wl,--no-entry" "-nostartfiles" "-Wl,--export-dynamic" "-v")
-        set_target_properties(ASM2010_shared PROPERTIES SUFFIX ".wasm")
+        target_link_options(ASM2010 PUBLIC "-Wl,--no-entry" "-nostartfiles" "-Wl,--export-dynamic")
+        set_target_properties(ASM2010 PROPERTIES SUFFIX ".wasm")
     endif()
 endif()
 
