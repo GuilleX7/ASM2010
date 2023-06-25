@@ -5,7 +5,6 @@
 #include "../cs_opcodes.h"
 
 #include "cs2010_opcodes.h"
-#include "cs2010_signals.h"
 
 #include "cs2010_platform.h"
 

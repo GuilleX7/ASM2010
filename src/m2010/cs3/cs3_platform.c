@@ -5,7 +5,6 @@
 #include "../cs_opcodes.h"
 
 #include "cs3_opcodes.h"
-#include "cs3_signals.h"
 
 #include "cs3_platform.h"
 
