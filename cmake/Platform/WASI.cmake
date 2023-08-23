@@ -2,7 +2,7 @@
 set(WASI 1)
 
 # This is arbitrary, AFAIK, for now.
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_SYSTEM_NAME WASI)
 set(CMAKE_SYSTEM_VERSION 1)
